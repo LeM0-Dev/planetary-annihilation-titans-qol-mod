@@ -1,0 +1,170 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://planetary-annihilation/schemas/ammo.schema.json",
+    "title": "PA Ammo Spec",
+    "description": "Schema for Planetary Annihilation ammo spec JSON (*_ammo.json: projectiles, beams, PBAOE). Validated against libs/paent/ammo_spec.cpp. additionalProperties is true because the engine ignores unknown keys. There is no damage_type key — typing is via armor_damage_map + damage_target. See docs/modding/unit-json/ammo-reference.md.",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "base_spec": { "type": "string" },
+        "ammo_type": { "type": "string", "enum": ["AMMO_Projectile", "Projectile", "AMMO_Beam", "Beam", "PBAOE", "AMMO_PBAOE"] },
+        "display_name": { "type": "string" },
+        "description": { "type": "string" },
+
+        "damage": { "type": "number" },
+        "damage_target": { "type": "string", "enum": ["HitPoints", "Metal"] },
+        "splash_damage": { "type": "number" },
+        "splash_radius": { "type": "number", "description": "meters" },
+        "full_damage_splash_radius": { "type": "number", "description": "meters; inner full-damage radius" },
+        "splash_damages_allies": { "type": "boolean" },
+        "splash_damage_orbital": { "type": "boolean" },
+        "armor_damage_map": {
+            "type": "object",
+            "additionalProperties": { "type": "number" },
+            "description": "Per-armor-class damage multiplier. Keys are AT_* armor types."
+        },
+        "ignore_shields": { "type": "boolean" },
+        "lifetime": { "type": "number", "description": "seconds" },
+        "model": { "type": ["object", "null", "string"], "additionalProperties": true, "description": "Object with .filename; null or \"\" = invisible." },
+        "recon": { "type": "object", "additionalProperties": true },
+        "build_metal_cost": { "type": "number" },
+        "atrophy_rate": { "type": "number" },
+        "atrophy_cool_down": { "type": "number" },
+        "signal_type": { "type": "string" },
+        "has_notifications": { "type": "boolean" },
+        "influence_radius": { "type": "number" },
+
+        "spawn_unit_on_death": { "type": "string" },
+        "spawn_unit_on_death_with_velocity": { "type": "boolean" },
+        "attachable": { "type": "object", "additionalProperties": true },
+        "transporter": { "type": "object", "additionalProperties": true },
+        "planet_impact_spec": { "type": "object", "additionalProperties": true },
+
+        "events": { "type": "object", "additionalProperties": { "$ref": "#/$defs/eventResponse" } },
+        "sim_fire_effect": { "type": "string" },
+        "sim_impact_effect": { "type": "string" },
+        "impact_decals": { "type": "array", "items": { "type": "string" } },
+        "fx_trail": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "filename": { "type": "string" },
+                "offset": { "$ref": "#/$defs/vec3" }
+            }
+        },
+
+        "physics": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "type": "string" },
+                "radius": { "type": "number" },
+                "shape": { "type": "string" },
+                "collision_layers": { "$ref": "#/$defs/worldLayer" },
+                "air_friction": { "type": "number", "description": "drag" },
+                "gravity_scalar": { "type": "number" },
+                "ignore_gravity": { "type": "boolean" },
+                "orient_interp_rate": { "type": "number" },
+                "add_to_spatial_db": { "type": "boolean" },
+                "allow_underground": { "type": "boolean" },
+                "collide_with_types": { "type": "array", "items": { "type": "string" } }
+            }
+        },
+
+        "flight_type": { "type": "string", "enum": ["FLIGHT_Ballistic", "Ballistic", "FLIGHT_Direct", "Direct", "FLIGHT_Seeking", "Seeking", "FLIGHT_Staged", "Staged"] },
+        "initial_velocity": { "type": "number", "description": "m/s" },
+        "max_velocity": { "type": "number", "description": "m/s" },
+        "accel_rate": { "type": "number", "description": "m/s^2" },
+        "turn_rate": { "type": "number", "description": "deg/s" },
+        "local_forward": { "$ref": "#/$defs/vec3" },
+        "cruise_height": { "type": "number", "description": "meters above flight_layer" },
+        "flight_layer": { "$ref": "#/$defs/worldLayer" },
+        "ground_target_area_spread": { "type": "number" },
+        "collision_check": { "type": "string", "enum": ["Enemies", "Target", "Ground", "enemies", "target", "ground"], "description": "Case-insensitive in the engine." },
+        "collision_response": { "type": "string", "enum": ["Impact", "Destroy", "impact", "destroy"], "description": "Case-insensitive in the engine." },
+        "collision_bounds": { "type": "number" },
+        "interplanetary_type": { "type": "string", "enum": ["None", "GravWell", "System", "INTER_None", "INTER_GravWell", "INTER_System"] },
+        "system_velocity_multiplier": { "type": "number" },
+        "gravwell_velocity_multiplier": { "type": "number" },
+        "stage_on_planet_handoff": { "type": "integer" },
+
+        "stages": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                    "apply_thrust": { "type": "boolean" },
+                    "ignores_gravity": { "type": "boolean" },
+                    "ignores_LOS": { "type": "boolean" },
+                    "rotates_to_velocity": { "type": "boolean" },
+                    "release_payload": { "type": "boolean" },
+                    "release_payload_on_impact": { "type": "boolean" },
+                    "die_here": { "type": "boolean" },
+                    "stage_duration": { "type": "number", "description": "MILLISECONDS" },
+                    "stage_turn_rate": { "type": "number", "description": "deg/s" },
+                    "stage_change_range": { "type": "number" },
+                    "stage_change_height": { "type": "number" },
+                    "stage_change_height_below": { "type": "number" },
+                    "climb_angle": { "type": "number", "description": "deg" }
+                }
+            }
+        },
+
+        "fx_beam_spec": { "type": "string" },
+        "fx_collision_spec": { "type": "string" },
+        "audio_loop": { "type": "string" },
+        "collision_audio": { "type": "string" },
+
+        "burn_damage": { "type": "number" },
+        "burn_radius": { "type": "number" },
+        "damage_volume": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "initial_radius": { "type": "number" },
+                "radius_velocity": { "type": "number" },
+                "radius_accel": { "type": "number" },
+                "delay": { "type": "number" },
+                "delay_damage": { "type": "boolean" },
+                "unit_remove_radius": { "type": "number" },
+                "burnable_remove_radius": { "type": "number" }
+            }
+        }
+    },
+
+    "allOf": [
+        {
+            "$comment": "Projectile ammo requires a flight_type unless it has stages.",
+            "if": {
+                "properties": { "ammo_type": { "enum": ["AMMO_Projectile", "Projectile"] } },
+                "required": ["ammo_type"],
+                "not": { "required": ["stages"] }
+            },
+            "then": { "required": ["flight_type"] }
+        },
+        {
+            "$comment": "collision_response Destroy is only valid with collision_check Target.",
+            "if": { "properties": { "collision_response": { "enum": ["Destroy", "destroy"] } }, "required": ["collision_response"] },
+            "then": { "properties": { "collision_check": { "enum": ["Target", "target"] } }, "required": ["collision_check"] }
+        }
+    ],
+
+    "$defs": {
+        "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "worldLayer": { "type": "string", "description": "WL_* world layer (prefix optional)." },
+        "eventResponse": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "audio_cue": { "type": "string" },
+                "audio_interplanetary": { "type": "boolean" },
+                "effect_spec": { "type": "string" },
+                "effect_scale": { "type": "number" },
+                "effect_world_aligned": { "type": "boolean" },
+                "effect_world_scaled": { "type": "boolean" },
+                "camera_shake": { "type": "object" }
+            }
+        }
+    }
+}

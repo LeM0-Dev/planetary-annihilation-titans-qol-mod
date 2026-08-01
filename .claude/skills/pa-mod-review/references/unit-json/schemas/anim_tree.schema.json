@@ -1,0 +1,151 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://planetary-annihilation/schemas/anim_tree.schema.json",
+    "title": "PA Animation Tree Spec",
+    "description": "Schema for Planetary Annihilation animation tree JSON (content/anim/anim_trees/*_anim_tree.json). Validated against client/client_anim_nodes.cpp. additionalProperties is true because the engine ignores unknown keys. See docs/modding/unit-json/animation-tree-reference.md.",
+    "type": "object",
+    "additionalProperties": true,
+    "required": ["blend_root"],
+    "properties": {
+        "blend_root": { "$ref": "#/$defs/blendNode" },
+        "skeleton_controls": { "type": "array", "items": { "$ref": "#/$defs/skeletonControl" } }
+    },
+
+    "$defs": {
+        "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "axis": { "type": "string", "enum": ["x", "-x", "y", "-y", "z", "-z"] },
+
+        "blendNode": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["type"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["playback", "aim_blend", "bind_pose", "walk", "fly", "toggle", "sequence", "sequence_item", "unit_state", "slotted_build_target"]
+                },
+
+                "anim_name": { "type": "string" },
+                "looping": { "type": "boolean" },
+                "rate": { "type": "number" },
+                "enable_control": { "type": "boolean" },
+                "events": { "type": "array", "items": { "$ref": "#/$defs/playbackEvent" } },
+
+                "aim_bone_root": { "type": "string" },
+                "weapon_index": { "type": "integer" },
+                "node_aim_down": { "$ref": "#/$defs/blendNode" },
+                "node_aim_neutral": { "$ref": "#/$defs/blendNode" },
+                "node_aim_up": { "$ref": "#/$defs/blendNode" },
+                "child": { "$ref": "#/$defs/blendNode" },
+
+                "node_idle": { "$ref": "#/$defs/blendNode" },
+                "node_walk": { "$ref": "#/$defs/blendNode" },
+                "node_fly": { "$ref": "#/$defs/blendNode" },
+
+                "func": { "type": "string" },
+                "node_0": { "$ref": "#/$defs/blendNode" },
+                "node_1": { "$ref": "#/$defs/blendNode" },
+
+                "nodes": {
+                    "type": "object",
+                    "additionalProperties": { "$ref": "#/$defs/blendNode" },
+                    "description": "unit_state child states: being_built, living, dead, ghost."
+                },
+
+                "entries": { "type": "array", "items": { "$ref": "#/$defs/sequenceEntry" } },
+                "transition_seek": { "$ref": "#/$defs/transitionSeek" },
+
+                "no_build_target": { "$ref": "#/$defs/blendNode" },
+                "slots": { "type": "array", "items": { "$ref": "#/$defs/blendNode" } }
+            }
+        },
+
+        "sequenceEntry": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["name"],
+            "properties": {
+                "type": { "type": "string" },
+                "name": { "type": "string", "description": "Unique entry name; 'idle' means not-busy." },
+                "node": { "$ref": "#/$defs/blendNode" },
+                "scale_to_move_speed": { "type": "boolean" },
+                "reset": { "type": ["string", "null"], "enum": ["playback_reset", "turning_reset", "null", null] },
+                "transitions": { "type": "array", "items": { "$ref": "#/$defs/transitionPair" } }
+            }
+        },
+
+        "transitionPair": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "transition_forward": { "$ref": "#/$defs/transition" },
+                "transition_reverse": { "$ref": "#/$defs/transition" }
+            }
+        },
+
+        "transition": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["target"],
+            "properties": {
+                "func": { "type": "string" },
+                "target": { "type": "string" },
+                "duration": { "type": "number" },
+                "anim_complete": { "type": "boolean" },
+                "speed": { "type": "number" },
+                "turn_rate": { "type": "number" }
+            }
+        },
+
+        "transitionSeek": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "func": { "type": "string", "description": "Commonly has_build_target/is_attached/intro/true_func, but any transition func or fire-event name (e.g. fired0) is accepted." },
+                "true_target": { "type": "string" },
+                "false_target": { "type": "string" },
+                "time": { "type": "number" }
+            }
+        },
+
+        "playbackEvent": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["type"],
+            "properties": {
+                "time": { "type": "number" },
+                "type": { "type": "string", "enum": ["audio", "effect"] },
+                "parameters": { "type": "object", "additionalProperties": true }
+            }
+        },
+
+        "skeletonControl": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["type"],
+            "properties": {
+                "type": { "type": "string", "enum": ["fader", "procedural_aim", "procedural_aim_yaw_pitch", "recoil", "giblet"] },
+
+                "lerp_func": { "type": "string", "enum": ["is_active", "not_being_built", "is_dead"] },
+                "child": { "$ref": "#/$defs/skeletonControl" },
+
+                "rotation_bone": { "type": "string" },
+                "rotation_axis": { "$ref": "#/$defs/axis" },
+                "weapon_index": { "type": "integer" },
+
+                "bone": { "type": "string" },
+                "recoil_dist": { "type": "number" },
+                "restore_time": { "type": "number" },
+                "recoil_dir": { "$ref": "#/$defs/axis" },
+                "unit_event": { "type": "string" },
+
+                "velocity": { "$ref": "#/$defs/vec3" },
+                "velocity_range": { "$ref": "#/$defs/vec3" },
+                "angular_velocity": { "$ref": "#/$defs/vec3" },
+                "angular_velocity_range": { "$ref": "#/$defs/vec3" },
+                "gravity": { "type": "number" },
+                "drag": { "type": "number" }
+            }
+        }
+    }
+}

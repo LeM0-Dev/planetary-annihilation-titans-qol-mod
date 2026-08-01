@@ -1,0 +1,426 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://planetary-annihilation/schemas/unit.schema.json",
+    "title": "PA Unit Spec",
+    "description": "Schema for Planetary Annihilation unit spec JSON (content/units/**/<unit>.json). Validated against libs/paent/unit_spec.cpp. additionalProperties is true everywhere because the engine silently ignores unknown keys; this schema type-checks the known ones. See docs/modding/unit-json/unit-spec-reference.md.",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "base_spec": { "type": "string", "description": "Path to a parent unit JSON to deep-merge under this one." },
+        "unit_name": { "type": "string" },
+        "display_name": { "type": "string" },
+        "description": { "type": "string" },
+        "replaceable_units": { "type": "array", "items": { "type": "string" } },
+        "display_group": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "display_index": { "type": "integer", "minimum": 0, "maximum": 999 },
+
+        "max_health": { "type": "number" },
+        "build_metal_cost": { "type": "number" },
+        "passive_health_regen": { "type": "number", "description": "Clamped to <= 0 by the sim." },
+        "armor_type": { "$ref": "#/$defs/armorType" },
+        "energy_efficiency_requirement": { "type": "number", "minimum": 0, "maximum": 1 },
+        "atrophy_rate": { "type": "number" },
+        "atrophy_cool_down": { "type": "number" },
+        "wreckage_health_frac": { "type": "number" },
+
+        "unit_types": { "type": "array", "items": { "$ref": "#/$defs/unitType" }, "minItems": 1 },
+        "command_caps": { "type": "array", "items": { "$ref": "#/$defs/orderKind" } },
+
+        "navigation": { "$ref": "#/$defs/navigation" },
+        "physics": { "$ref": "#/$defs/physics" },
+        "recon": { "$ref": "#/$defs/recon" },
+        "influence_radius": { "type": "number" },
+
+        "tools": { "type": "array", "items": { "$ref": "#/$defs/toolMount" } },
+
+        "production": { "$ref": "#/$defs/resources" },
+        "consumption": { "$ref": "#/$defs/resources" },
+        "storage": { "$ref": "#/$defs/resources" },
+
+        "buildable_types": { "type": "string", "description": "Unit-type set-expression of what this factory/fabber can build." },
+        "buildable_projectiles": { "type": "array", "items": { "type": "string" } },
+        "rolloff_dirs": { "type": "array", "items": { "$ref": "#/$defs/vec3" } },
+        "wait_to_rolloff_time": { "type": "number" },
+        "factory_cooldown_time": { "type": "number" },
+        "factory": { "$ref": "#/$defs/factory" },
+        "orders": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": { "handler_type": { "enum": ["default", "factory", "inert"] } }
+        },
+        "structure": { "type": "object", "additionalProperties": true },
+        "build_stamp": { "$ref": "#/$defs/costStamp" },
+
+        "mesh_bounds": { "$ref": "#/$defs/vec3" },
+        "wreckage_mesh_bounds": { "$ref": "#/$defs/vec3" },
+        "placement_size": { "type": "array", "items": { "type": "number" }, "minItems": 2, "description": "Footprint; stock content uses 2 or 3 components." },
+        "icon_vertical_offset": { "type": "number" },
+        "area_build_separation": { "type": "number" },
+        "alt_area_build_separation": { "type": "number" },
+        "area_max_radius": { "type": "number" },
+        "alt_area_max_radius": { "type": "number" },
+        "area_build_type": { "type": "string" },
+        "alt_area_build_type": { "type": "string" },
+        "area_build_pattern": { "type": "array", "items": { "type": "array", "items": { "type": ["number", "boolean"] } }, "description": "2D mask; stock content uses 0/1 integers." },
+        "alt_area_build_pattern": { "type": "array", "items": { "type": "array", "items": { "type": ["number", "boolean"] } } },
+        "legacy_orientation_hack": { "type": "boolean" },
+        "flip_drag_orientation": { "type": "boolean" },
+        "spawn_layers": { "$ref": "#/$defs/worldLayer" },
+        "build_restrictions": { "type": "string" },
+        "TEMP_texelinfo": { "type": "number" },
+
+        "guard_radius": { "type": "number" },
+        "guard_layer": { "$ref": "#/$defs/worldLayer" },
+        "attack_range_frac": { "type": "number" },
+        "nearby_target_tick_update_interval": { "type": "integer" },
+        "maintain_priority_target": { "type": "boolean" },
+        "stop_clears_nearby_targets": { "type": "boolean" },
+
+        "model": {
+            "oneOf": [
+                { "$ref": "#/$defs/model" },
+                { "type": "array", "items": { "$ref": "#/$defs/model" } }
+            ]
+        },
+
+        "strategic_icon_priority": { "type": "number" },
+        "si_name": { "type": "string" },
+        "lod_hide_pixelsize": { "type": "number" },
+        "selection_icon": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "diameter": { "type": "number" },
+                "thickness": { "type": "number" },
+                "vertical_offset": { "type": "number" }
+            }
+        },
+        "selection_bais_scale": { "type": "number", "description": "Misspelled-but-real key; keep the typo." },
+
+        "wreckage": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "collision_types": { "type": "array", "items": { "$ref": "#/$defs/physicsType" } },
+                "remove_ground_cost_stamp": { "type": "boolean" }
+            }
+        },
+        "death": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": { "decals": { "type": "array", "items": { "type": "string" } } }
+        },
+        "spawn_unit_on_death": { "type": "string" },
+        "death_weapon": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "ground_ammo_spec": { "type": "string" },
+                "air_ammo_spec": { "type": "string" },
+                "air_height_threshold": { "type": "number" }
+            }
+        },
+        "has_death_effects": { "type": "boolean" },
+
+        "events": { "type": "object", "additionalProperties": { "$ref": "#/$defs/eventResponse" } },
+        "audio": { "type": "object", "additionalProperties": true },
+        "fx_offsets": {
+            "oneOf": [
+                { "$ref": "#/$defs/fxOffset" },
+                { "type": "array", "items": { "$ref": "#/$defs/fxOffset" } }
+            ]
+        },
+        "headlights": { "oneOf": [ { "type": "object" }, { "type": "array" } ] },
+        "lamps": { "oneOf": [ { "type": "object" }, { "type": "array" } ] },
+        "orbital_offset": { "oneOf": [ { "type": "object" }, { "type": "array" } ] },
+
+        "shield": { "$ref": "#/$defs/shield" },
+
+        "transportable": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": { "size": { "type": "integer" } }
+        },
+        "transporter": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "capacity": { "type": "integer" },
+                "load_range": { "type": "number" },
+                "chase_range": { "type": "number" },
+                "transportable_unit_types": { "type": "string" },
+                "transporter_attach_bone": { "type": "string" },
+                "transportable_attach_offset": { "type": "string" },
+                "transportable_layers": { "type": "array", "items": { "$ref": "#/$defs/worldLayer" } }
+            }
+        },
+
+        "teleporter": { "type": "object", "additionalProperties": true },
+        "teleportable": { "type": ["object", "null"], "additionalProperties": true, "description": "Presence marks the unit teleportable; may be {} or null." },
+        "mass_teleporter": { "type": "object", "additionalProperties": true },
+        "useable": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "enum": ["teleporter", "transport"] },
+                "range": { "type": "number" }
+            }
+        },
+
+        "show_in_orbital_layer": { "type": "boolean" },
+        "enable_orbital_shell": { "type": "boolean" },
+        "activates_control_point": { "type": "boolean" },
+        "system_velocity_multiplier": { "type": "number" },
+        "gravwell_velocity_multiplier": { "type": "number" },
+        "planetary_arrival_cooldown_time": { "type": "number" },
+        "orbital_thruster": { "type": "object", "additionalProperties": true },
+
+        "feature_requirements": { "type": "array", "items": { "type": "string" } },
+        "force_snap_to_feature_orientation": { "type": "boolean" },
+        "feature_snap_ignores_pathability": { "type": "boolean" },
+        "attachable": { "$ref": "#/$defs/attachable" },
+        "scrolling_uv": { "type": "object", "additionalProperties": true },
+        "ai_metal_extractor_names": { "type": "object", "additionalProperties": true }
+    },
+
+    "$defs": {
+        "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "resources": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": { "energy": { "type": "number" }, "metal": { "type": "number" } }
+        },
+        "unitType": {
+            "type": "string",
+            "description": "UNITTYPE_* flag (prefix optional, case-insensitive). See enums-and-vocabulary.md."
+        },
+        "orderKind": {
+            "type": "string",
+            "enum": [
+                "ORDER_Move", "Move", "ORDER_SpecialMove", "SpecialMove", "ORDER_Patrol", "Patrol",
+                "ORDER_Build", "Build", "ORDER_FactoryBuild", "FactoryBuild", "ORDER_Attack", "Attack",
+                "ORDER_Reclaim", "Reclaim", "ORDER_Repair", "Repair", "ORDER_Assist", "Assist",
+                "ORDER_Use", "Use", "ORDER_Load", "Load", "ORDER_Unload", "Unload",
+                "ORDER_FireSecondaryWeapon", "FireSecondaryWeapon", "ORDER_Ping", "Ping",
+                "ORDER_MassTeleport", "MassTeleport"
+            ]
+        },
+        "armorType": {
+            "type": "string",
+            "description": "AT_* armor class (prefix optional, case-insensitive). e.g. AT_Bot, AT_Structure, AT_Commander."
+        },
+        "unitType_noop": {},
+        "worldLayer": {
+            "type": "string",
+            "description": "WL_* world layer (prefix optional, case-insensitive). e.g. WL_LandHorizontal, WL_Air, WL_AnySurface."
+        },
+        "physicsType": {
+            "type": "string",
+            "enum": ["Mobile", "Projectile", "Structure", "None", "All", "none", "PT_Mobile", "PT_Projectile", "PT_Structure"]
+        },
+        "navigation": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "$ref": "#/$defs/moveType" },
+                "inter_planetary_type": { "type": "string", "description": "None / GravWell / System (case-insensitive)." },
+                "turn_in_place": { "type": "boolean" },
+                "acceleration": { "type": "number" },
+                "brake": { "type": "number" },
+                "move_speed": { "type": "number" },
+                "turn_speed": { "type": "number", "description": "deg/s" },
+                "turn_accel": { "type": "number", "description": "deg/s^2" },
+                "vertical_speed": { "type": "number" },
+                "dodge_radius": { "type": "number" },
+                "dodge_multiplier": { "type": "number" },
+                "aggressive_behavior": { "enum": ["Point", "Follow", "Line", "Circle", "point", "follow", "line", "circle"] },
+                "aggressive_distance": { "type": "number" },
+                "aggressive_height": { "type": "number" },
+                "hover_time": { "type": "number" },
+                "circle_min_time": { "type": "number" },
+                "circle_max_time": { "type": "number" },
+                "bank_factor": { "type": "number" },
+                "wobble_factor": { "type": "number" },
+                "wobble_speed": { "type": "number" },
+                "group_preference": { "type": "string" },
+                "leash_distance": { "type": "number" },
+                "leash_behavior": { "type": "string" },
+                "ignore_overshoot": { "type": "boolean" },
+                "park_stamp": { "$ref": "#/$defs/costStamp" }
+            }
+        },
+        "moveType": {
+            "type": "string",
+            "enum": ["land-small", "amphibious", "amphibious-large", "hover", "hover-large", "water-hover", "deepwater", "underwater", "air", "orbital"]
+        },
+        "physics": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "$ref": "#/$defs/physicsType" },
+                "radius": { "type": "number" },
+                "shape": { "enum": ["Sphere", "Box", "sphere", "box"] },
+                "collision_layers": { "$ref": "#/$defs/worldLayer" },
+                "collide_with_types": { "type": "array", "items": { "$ref": "#/$defs/physicsType" } },
+                "air_friction": { "type": "number" },
+                "gravity_scalar": { "type": "number" },
+                "ignore_gravity": { "type": "boolean" },
+                "orient_interp_rate": { "type": "number" },
+                "add_to_spatial_db": { "type": "boolean" },
+                "allow_pushing": { "type": "boolean" },
+                "push_sideways": { "type": "boolean" },
+                "allow_underground": { "type": "boolean" },
+                "sync_radius_to_extents": { "type": "boolean" },
+                "underwater": { "type": "boolean" }
+            }
+        },
+        "recon": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "observer": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "properties": {
+                                    "layer": { "enum": ["underwater", "surface_and_air", "orbital", "celestial", "mine"] },
+                                    "channel": { "enum": ["sight", "radar", "deep_space", "radar_jammer"] },
+                                    "shape": { "enum": ["sphere", "capsule"] },
+                                    "radius": { "type": "number" },
+                                    "height": { "type": "number" },
+                                    "uses_energy": { "type": "boolean" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "observable": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "properties": {
+                        "layer": { "type": "string" },
+                        "sphere_radius": { "type": "number" },
+                        "ignore_sight": { "type": "boolean" },
+                        "ignore_radar": { "type": "boolean" },
+                        "always_visible": { "type": "boolean" },
+                        "retain_visible": { "type": "boolean" },
+                        "show_ghost": { "type": "boolean" }
+                    }
+                }
+            }
+        },
+        "toolMount": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["spec_id"],
+            "properties": {
+                "spec_id": { "type": "string" },
+                "aim_bone": { "type": "string" },
+                "muzzle_bone": {
+                    "oneOf": [ { "type": "string" }, { "type": "array", "items": { "type": "string" } }, { "type": "null" } ]
+                },
+                "projectiles_per_fire": { "type": "integer" },
+                "record_index": { "type": "integer", "minimum": -1, "maximum": 3 },
+                "show_range": { "type": "boolean" },
+                "fire_event": { "type": "string" },
+                "primary_weapon": { "type": "boolean" },
+                "secondary_weapon": { "type": "boolean" }
+            }
+        },
+        "factory": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "store_units": { "type": "boolean" },
+                "deploy_projectile": { "type": "string" },
+                "hide_deploy_projectile": { "type": "boolean" },
+                "hide_stored_units": { "type": "boolean" },
+                "spawn_points": { "type": "array", "items": { "type": "string" } },
+                "default_ammo": { "type": "array", "items": { "type": "string" } },
+                "initial_build_spec": { "type": "string" },
+                "default_build_stance": { "enum": ["Normal", "Continuous"] },
+                "pass_on_orders": { "type": "boolean" }
+            }
+        },
+        "costStamp": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "shape": { "enum": ["sphere", "box"] },
+                "cost": { "type": "integer", "minimum": 0, "maximum": 255 },
+                "type_data": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "properties": {
+                            "move_type": { "$ref": "#/$defs/moveType" },
+                            "stamp_type": { "enum": ["simple", "structure"] }
+                        }
+                    }
+                }
+            }
+        },
+        "model": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "filename": { "type": "string" },
+                "layer": { "$ref": "#/$defs/worldLayer" },
+                "animations": { "type": "object", "additionalProperties": { "type": "string" } },
+                "animtree": { "type": "string" },
+                "walk_speed": { "type": "number" },
+                "skirt_decal": { "type": "string" }
+            }
+        },
+        "eventResponse": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "audio_cue": { "type": "string" },
+                "audio_interplanetary": { "type": "boolean" },
+                "effect_spec": { "type": "string" },
+                "effect_scale": { "type": "number" },
+                "effect_world_aligned": { "type": "boolean" },
+                "effect_world_scaled": { "type": "boolean" },
+                "camera_shake": { "type": "object" }
+            }
+        },
+        "fxOffset": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "type": { "type": "string" },
+                "filename": { "type": "string" },
+                "bone": { "type": "string" },
+                "offset": { "type": "array", "items": { "type": "number" }, "description": "Usually [x,y,z]; some stock content has 2 components." },
+                "orientation": { "type": "array", "items": { "type": "number" } }
+            }
+        },
+        "shield": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "radius": { "type": "number", "maximum": 200 },
+                "energy_demand": { "type": "number" },
+                "max_health": { "type": "number" },
+                "recharge_rate": { "type": "number" },
+                "cooldown_time": { "type": "number" },
+                "recharge_requires_efficiency": { "type": "boolean" }
+            }
+        },
+        "attachable": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "default_attach_bone": { "type": "string" },
+                "offsets": { "type": "object", "additionalProperties": { "$ref": "#/$defs/vec3" } }
+            }
+        }
+    }
+}

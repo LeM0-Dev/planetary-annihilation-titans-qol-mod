@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://planetary-annihilation/schemas/tool.schema.json",
+    "title": "PA Tool Spec",
+    "description": "Schema for Planetary Annihilation tool spec JSON (weapons *_tool_weapon.json and build arms *_build_arm.json). Validated against libs/paent/tool_spec.cpp. additionalProperties is true because the engine ignores unknown keys. See docs/modding/unit-json/tool-weapon-reference.md.",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "base_spec": { "type": "string" },
+        "tool_type": {
+            "type": "string",
+            "enum": ["TOOL_Weapon", "Weapon", "TOOL_BuildArm", "BuildArm", "TOOL_CaptureArm", "CaptureArm"],
+            "description": "Only Weapon and BuildArm are functional. TOOL_CaptureArm appears in stock content (base_capture_arm.json) but is NOT implemented by the engine."
+        },
+
+        "ammo_id": { "$ref": "#/$defs/ammoId" },
+
+        "target_layers": { "type": "array", "items": { "$ref": "#/$defs/worldLayer" } },
+        "auto_attack": { "type": "boolean" },
+        "no_busy_auto_attack": { "type": "boolean" },
+        "exclude_unit_types": { "type": "string", "description": "Unit-type set-expression." },
+        "target_priorities": { "type": "array", "items": { "type": "string" } },
+        "auto_task_type": { "type": "string", "enum": ["default", "none", "anti_entity"] },
+        "anti_entity_targets": { "type": "array", "items": { "type": "string" } },
+        "anti_entity_targets_units": { "type": "boolean" },
+
+        "rate_of_fire": { "type": "number", "description": "Firing cycles per second; cooldown = 1/rate_of_fire." },
+        "reload_rate": { "type": "number" },
+        "max_range": { "type": "number", "description": "meters" },
+        "yaw_rate": { "type": "number", "description": "deg/s" },
+        "pitch_rate": { "type": "number", "description": "deg/s" },
+        "yaw_range": { "type": "number", "description": "deg; >=180 means full 360 rotation" },
+        "pitch_range": { "type": "number", "description": "deg; >=180 means unrestricted" },
+        "firing_arc_yaw": { "type": "number", "description": "deg" },
+        "firing_arc_pitch": { "type": "number", "description": "deg" },
+        "default_firing_pitch": { "type": "number", "description": "deg; if set, weapon always pitches here" },
+        "idle_aim_delay": { "type": "number", "description": "seconds; <0 = never return to rest aim" },
+        "firing_standard_deviation": { "type": "number", "description": "deg of spread; 0 = perfect accuracy" },
+
+        "arc_type": { "type": "string", "description": "low / high / both (ARC_ prefix optional, case-insensitive)." },
+        "max_firing_velocity": { "type": "number" },
+        "min_firing_velocity": { "type": "number" },
+        "force_fire_from_muzzle": { "type": "boolean" },
+
+        "ammo_source": { "type": "string", "enum": ["infinite", "energy", "metal", "factory", "time", "SOURCE_infinite", "SOURCE_energy", "SOURCE_metal", "SOURCE_factory", "SOURCE_time"] },
+        "ammo_capacity": { "type": "number", "minimum": 0 },
+        "ammo_demand": { "type": "number", "minimum": 0 },
+        "ammo_per_shot": { "type": "number", "minimum": 0 },
+        "start_fully_charged": { "type": "boolean" },
+        "charge_ammo_when_targeting": { "type": "boolean" },
+        "auto_fire_when_charged": { "type": "boolean" },
+        "carpet_fire": { "type": "boolean" },
+        "carpet_wait_for_full_ammo": { "type": "boolean" },
+
+        "manual_fire": { "type": "boolean" },
+        "only_fire_once": { "type": "boolean" },
+        "self_destruct": { "type": "boolean" },
+        "spread_fire": { "type": "boolean" },
+        "fire_delay": { "type": "number", "description": "seconds between fire event and projectile spawn" },
+
+        "construction_demand": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "energy": { "type": "number", "description": "energy/sec while building" },
+                "metal": { "type": "number", "description": "metal/sec while building (the build rate)" }
+            }
+        },
+        "assist_layers": { "type": "array", "items": { "$ref": "#/$defs/worldLayer" } },
+        "reclaim_layers": { "type": "array", "items": { "$ref": "#/$defs/worldLayer" } },
+        "reclaim_types": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["Unit", "Wreckage", "Feature", "Friendly_Commander", "RET_Unit", "RET_Wreckage", "RET_Feature", "RET_Friendly_Commander"] }
+        },
+        "can_only_assist_with_buildable_items": { "type": "boolean" },
+        "auto_repair": { "type": "boolean" },
+        "auto_reclaim": { "type": "boolean" }
+    },
+
+    "$defs": {
+        "worldLayer": {
+            "type": "string",
+            "description": "WL_* world layer (prefix optional). e.g. WL_LandHorizontal, WL_Air, WL_AnyHorizontalGroundOrWaterSurface."
+        },
+        "ammoId": {
+            "description": "Either a single ammo spec path (mapped to WL_AnyLayer), or a layer-keyed array.",
+            "oneOf": [
+                { "type": "string" },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["layer", "id"],
+                        "properties": {
+                            "layer": { "$ref": "#/$defs/worldLayer" },
+                            "id": { "type": "string" }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
