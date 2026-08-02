@@ -482,30 +482,49 @@
         $(document).on('mousewheel DOMMouseScroll', onWheel);
     })();
 
-    // Strategic icons are white mask images the game tints per army; render
-    // them as an army-coloured div with the icon as a -webkit-mask. The URL
-    // is probed once (missing atlas file would otherwise show as a solid
-    // colour square, since no mask = nothing masked out).
-    var maskProbe = {}; // url -> true/false once probed
-    ko.bindingHandlers.paqolMask = {
+    // Strategic icon atlas files encode regions by colour: YELLOW (r=g=1)
+    // is the army-coloured fill, RED (g=0) is the glyph the game renders
+    // black — exactly what you see zoomed out to orbit. Reproduce with an
+    // SVG colour-matrix: every output channel driven by the GREEN channel
+    // scaled to the army colour, so yellow -> army colour, red -> black,
+    // alpha preserved. One <filter> per distinct colour, generated on demand.
+    var tintFilters = {}; // css color -> filter element id
+    function tintFilterId(color) {
+        if (tintFilters[color]) return tintFilters[color];
+        var m = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(color);
+        var r = 0.81, g = 0.88, b = 0.92; // default #cfe0ea
+        if (m) { r = m[1] / 255; g = m[2] / 255; b = m[3] / 255; }
+        else if (/^#/.test(color) && color.length === 7) {
+            r = parseInt(color.slice(1, 3), 16) / 255;
+            g = parseInt(color.slice(3, 5), 16) / 255;
+            b = parseInt(color.slice(5, 7), 16) / 255;
+        }
+        var id = 'paqolTint' + _.size(tintFilters);
+        var host = document.getElementById('paqol-tint-defs');
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'paqol-tint-defs';
+            host.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
+            document.body.appendChild(host);
+        }
+        host.innerHTML += '<svg xmlns="http://www.w3.org/2000/svg"><defs>' +
+            '<filter id="' + id + '" color-interpolation-filters="sRGB">' +
+            '<feColorMatrix type="matrix" values="' +
+            '0 ' + r + ' 0 0 0  ' +
+            '0 ' + g + ' 0 0 0  ' +
+            '0 ' + b + ' 0 0 0  ' +
+            '0 0 0 1 0" />' +
+            '</filter></defs></svg>';
+        tintFilters[color] = id;
+        return id;
+    }
+
+    ko.bindingHandlers.paqolSiTint = {
         update: function (el, valueAccessor) {
-            var url = ko.unwrap(valueAccessor());
-            el.style.display = 'none';
-            if (!url) return;
-            if (maskProbe[url] === true) {
-                el.style.webkitMaskImage = 'url("' + url + '")';
-                el.style.display = '';
-                return;
-            }
-            if (maskProbe[url] === false) return;
-            var img = new Image();
-            img.onload = function () {
-                maskProbe[url] = true;
-                el.style.webkitMaskImage = 'url("' + url + '")';
-                el.style.display = '';
-            };
-            img.onerror = function () { maskProbe[url] = false; };
-            img.src = url;
+            var color = ko.unwrap(valueAccessor()) || '#cfe0ea';
+            var id = tintFilterId(color);
+            el.style.webkitFilter = 'url(#' + id + ')';
+            el.style.filter = 'url(#' + id + ')';
         }
     };
 
