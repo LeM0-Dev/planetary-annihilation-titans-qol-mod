@@ -329,5 +329,18 @@
     // ------------------------------------------------------------------ boot
     app.registerWithCoherent(model, handlers);
     ko.applyBindings(model);
+
+    // player_data is broadcast on CHANGE and the first broadcast usually
+    // fires before this page finishes registering, so pull the roster once —
+    // the same pattern the stock alert panel uses (parentQuery('playerData')).
+    try {
+        api.Panel.query(api.Panel.parentId, 'panel.invoke', ['playerData'])
+            .then(function (payload) {
+                if (payload) handlers.player_data(payload);
+            });
+    } catch (e) {
+        paqol.log.warn('playerData pull failed; ping attribution starts with the next roster change.', e);
+    }
+
     paqol.log.info('window "' + role + '" ready (v' + paqol.VERSION + ').');
 })();
