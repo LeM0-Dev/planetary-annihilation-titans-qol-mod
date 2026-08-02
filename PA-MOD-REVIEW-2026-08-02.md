@@ -1,7 +1,6 @@
 # Mod Review — PA:T QoL
 
-**Verdict: Loads cleanly, with one conditional defect.**
-No blockers; one Bug that only manifests in lobbies containing observer/replay armies, one managed Maintenance Risk, two Code Quality notes.
+**Verdict: Loads cleanly.** (Initially: one conditional Bug + two Code Quality notes — all three verified and fixed the same day; details below with fixes marked Done.)
 
 | | |
 |---|---|
@@ -11,7 +10,7 @@ No blockers; one Bug that only manifests in lobbies containing observer/replay a
 | Files reviewed | 58 |
 | Base-game files shadowed | 1 |
 | Base game | `/mnt/nvme-2-4tb/SteamLibrary/steamapps/common/Planetary Annihilation Titans/media` (`--media`) |
-| Reviewed | 2026-08-02 (second full review; supersedes the earlier same-day report) |
+| Reviewed | 2026-08-02 (second full review; post-fix pass confirmed BUG-001/QUA-001/QUA-002 resolved — CLI verdict Loads cleanly, only the permanent shadow note remains) |
 
 ## Summary
 
