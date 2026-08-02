@@ -81,32 +81,44 @@ html, body {
         linear-gradient(135deg, transparent 50%, rgba(120, 160, 190, 0.6) 50%);
 }
 
-/* rows */
+/* rows: [build icon] [strategic icon] [text .....] [time, far right] */
 .paqol-list { padding: 2px 0; }
 
 .paqol-row {
+    display: flex;
+    align-items: center;
     padding: 2px 6px;
     line-height: 18px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     border-bottom: 1px solid rgba(120, 160, 190, 0.12);
 }
 
 .paqol-row.paqol-clickable { cursor: pointer; }
 .paqol-row.paqol-clickable:hover { background: rgba(80, 110, 135, 0.35); }
-.paqol-row.paqol-hostile .paqol-row-text,
-.paqol-row.paqol-hostile.paqol-row .paqol-row-text { color: #e88a8a; }
 .paqol-row.paqol-stale { opacity: 0.5; }
 
+.paqol-row-icon,
+.paqol-row-sicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.paqol-row-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
 .paqol-row-time {
-    display: inline-block;
-    min-width: 44px;
+    margin-left: auto;
+    padding-left: 8px;
     color: #7f97a6;
     font-family: monospace;
+    flex-shrink: 0;
 }
-.paqol-row .paqol-row-time { float: none; }
-.paqol-hvt-time { float: right; }
 
 .paqol-row-more,
 .paqol-empty {

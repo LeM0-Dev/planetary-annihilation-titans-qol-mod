@@ -49,6 +49,65 @@
     // (live_game.js:891 sends it to every child panel).
     var armyName = {};
     var armyColor = {};
+    var colorRev = ko.observable(0); // re-render hook for late roster arrival
+
+    // ---- unit icons -----------------------------------------------------
+    // Build-bar icon is pure path derivation (shared/js/build.js). The
+    // strategic ("zoomed out") icon needs si_name from the unit spec, which
+    // may live up the base_spec chain — fetched lazily and cached per spec.
+    var specCache = {}; // canonical spec -> {si: string|null}
+    var specRev = ko.observable(0);
+
+    function canonicalSpec(specId) {
+        var m = /(.*\.json)/.exec(specId || '');
+        return m ? m[1] : null;
+    }
+
+    // Walk the base_spec chain (depth-capped) until an si_name shows up,
+    // then record it against the ORIGINAL spec key.
+    function fetchSi(fromKey, targetKey, depth) {
+        if (depth > 3 || typeof $.getJSON !== 'function') return;
+        $.getJSON('coui:/' + fromKey).done(function (d) {
+            if (d && typeof d.si_name === 'string' && d.si_name) {
+                specCache[targetKey].si = d.si_name;
+                specRev(specRev() + 1);
+            } else if (d && typeof d.base_spec === 'string') {
+                var baseKey = canonicalSpec(d.base_spec);
+                if (baseKey) fetchSi(baseKey, targetKey, depth + 1);
+            }
+        });
+    }
+
+    function siIconFor(row) {
+        specRev();
+        if (!row || !row.specKey) return null;
+        var entry = specCache[row.specKey];
+        if (entry === undefined) {
+            specCache[row.specKey] = { si: null };
+            fetchSi(row.specKey, row.specKey, 0);
+            return null;
+        }
+        return entry.si
+            ? 'coui://ui/main/atlas/icon_atlas/img/strategic_icons/icon_si_' + entry.si + '.png'
+            : null;
+    }
+
+    function buildIconFor(row) {
+        if (!row || !row.specKey || typeof Build === 'undefined') return null;
+        return Build.iconForSpecId(row.specKey);
+    }
+
+    // Owner colour when the roster knows the army, otherwise red for enemy,
+    // white for ally, default for everything else.
+    function rowColorFor(row) {
+        colorRev();
+        if (!row) return '';
+        if (row.army_id !== undefined && row.army_id !== null && armyColor[row.army_id])
+            return armyColor[row.army_id];
+        if (row.hostile) return '#e88a8a';
+        if (row.allied) return '#ffffff';
+        return '';
+    }
 
     // NOTE: the engine strips the sender from ping alerts (army_id -1), so
     // pings render unattributed. The name path below only fires if a client
@@ -62,6 +121,25 @@
         var target = row && (row.location ? row : (row.entry && row.entry.location ? row.entry : null));
         if (!target || !target.location) return;
         api.camera.lookAt({ location: target.location, planet_id: target.planet_id, zoom: 'air' }, true);
+    };
+
+    // template helpers (shared by both roles)
+    model.buildIcon = buildIconFor;
+    model.siIcon = siIconFor;
+    model.rowColor = rowColorFor;
+
+    // right-click a row -> remove just that entry
+    model.dismiss = function (row) {
+        if (!row) return false;
+        if (role === 'paqol_history') {
+            ring.remove(row);
+            if (row.key && lastByKey[row.key] && lastByKey[row.key].row === row)
+                delete lastByKey[row.key];
+        } else if (row.entry && entries[row.entry.id]) {
+            delete entries[row.entry.id];
+        }
+        rev(rev() + 1);
+        return false; // suppress any default context menu
     };
 
     var RENDER_MAX = 150;
@@ -141,33 +219,33 @@
         else if (allied) name = 'Allied ' + name;
 
         var text;
-        var color = null;
         if (alert.custom) text = alert.name ? String(alert.name) : 'Alert';
         else if (wtName === 'ping') {
             // attribute the ping to its sender when the engine provides one
             var pinger = armyName[alert.army_id];
             text = pinger ? 'Ping — ' + pinger : 'Ping';
-            color = pinger ? (armyColor[alert.army_id] || null) : null;
         }
         else if (template) text = template.replace('__name__', name);
         else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
 
         var hasLocation = !!(alert.location && alert.planet_id !== undefined && alert.planet_id !== null);
-        var spec = /(.*\.json)/.exec(alert.spec_id || '');
+        var specKey = canonicalSpec(alert.spec_id);
         // Pings are deliberate player communication: two pings are two
         // messages (different senders, different spots) — never merge them.
         // key null = exempt from coalescing.
         var key;
         if (wtName === 'ping') key = null;
         else if (alert.custom) key = 'custom:' + (alert.name || '');
-        else key = 'wt:' + alert.watch_type + ':' + (spec ? spec[1] : '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o'));
+        else key = 'wt:' + alert.watch_type + ':' + (specKey || '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o'));
         return {
             key: key,
             count: 1,
             timeText: paqolTimefmt.format(gameTime),
             text: text,
-            color: color,
+            specKey: alert.custom ? null : specKey,
+            army_id: alert.army_id,
             hostile: hostile,
+            allied: allied,
             location: hasLocation ? alert.location : null,
             planet_id: hasLocation ? alert.planet_id : null
         };
@@ -203,6 +281,8 @@
             id: alert.id,
             rank: cat.rank,
             label: specLabel(alert.spec_id),
+            specKey: canonicalSpec(alert.spec_id),
+            army_id: alert.army_id,
             location: alert.location || null,
             planet_id: (alert.planet_id === undefined) ? null : alert.planet_id,
             lastSeen: gameTime
@@ -222,6 +302,9 @@
                 return {
                     entry: e,
                     label: e.label,
+                    specKey: e.specKey,
+                    army_id: e.army_id,
+                    hostile: true,
                     seenText: paqolTimefmt.format(e.lastSeen),
                     stale: stale,
                     clickable: !!(e.location && e.planet_id !== null)
@@ -245,6 +328,7 @@
             if (_.isArray(payload.names)) armyName[payload.ids[i]] = payload.names[i];
             if (_.isArray(payload.colors)) armyColor[payload.ids[i]] = payload.colors[i];
         }
+        colorRev(colorRev() + 1); // recolour already-rendered rows
     };
 
     handlers.watch_list = function (payload) {

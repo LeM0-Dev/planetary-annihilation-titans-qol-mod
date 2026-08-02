@@ -23,11 +23,20 @@
                 <div class="paqol-empty" data-bind="visible: rows().length === 0">No notifications yet.</div>
                 <!-- ko foreach: rows -->
                 <div class="paqol-row"
-                     data-bind="css: { 'paqol-clickable': !!$data.location, 'paqol-hostile': $data.hostile },
-                                click: function () { $root.jump($data); }">
-                    <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
+                     data-bind="css: { 'paqol-clickable': !!$data.location },
+                                click: function () { $root.jump($data); },
+                                event: { contextmenu: function () { return $root.dismiss($data); } }">
+                    <!-- ko if: $root.buildIcon($data) -->
+                    <img class="paqol-row-icon" onerror="this.style.display='none'"
+                         data-bind="attr: { src: $root.buildIcon($data) }" />
+                    <!-- /ko -->
+                    <!-- ko if: $root.siIcon($data) -->
+                    <img class="paqol-row-sicon" onerror="this.style.display='none'"
+                         data-bind="attr: { src: $root.siIcon($data) }" />
+                    <!-- /ko -->
                     <span class="paqol-row-text"
-                          data-bind="text: $data.display, style: { color: $data.color || '' }"></span>
+                          data-bind="text: $data.display, style: { color: $root.rowColor($data) }"></span>
+                    <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
                 </div>
                 <!-- /ko -->
                 <div class="paqol-row-more" data-bind="visible: hiddenCount() > 0">
@@ -40,10 +49,20 @@
             <div class="paqol-list">
                 <div class="paqol-empty" data-bind="visible: rows().length === 0">No high-value targets spotted.</div>
                 <!-- ko foreach: rows -->
-                <div class="paqol-row paqol-hostile"
+                <div class="paqol-row"
                      data-bind="css: { 'paqol-clickable': $data.clickable, 'paqol-stale': $data.stale },
-                                click: function () { $root.jump($data); }">
-                    <span class="paqol-row-text" data-bind="text: $data.label"></span>
+                                click: function () { $root.jump($data); },
+                                event: { contextmenu: function () { return $root.dismiss($data); } }">
+                    <!-- ko if: $root.buildIcon($data) -->
+                    <img class="paqol-row-icon" onerror="this.style.display='none'"
+                         data-bind="attr: { src: $root.buildIcon($data) }" />
+                    <!-- /ko -->
+                    <!-- ko if: $root.siIcon($data) -->
+                    <img class="paqol-row-sicon" onerror="this.style.display='none'"
+                         data-bind="attr: { src: $root.siIcon($data) }" />
+                    <!-- /ko -->
+                    <span class="paqol-row-text"
+                          data-bind="text: $data.label, style: { color: $root.rowColor($data) }"></span>
                     <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
                 </div>
                 <!-- /ko -->
@@ -54,6 +73,7 @@
         <div class="paqol-win-grip" id="paqol-win-grip" data-bind="visible: !minimized()"></div>
     </div>
 
+    <script type="text/javascript" src="coui://ui/main/shared/js/build.js"></script>
     <script type="text/javascript" src="coui://ui/main/game/live_game/js/constants.js"></script>
     <script type="text/javascript" src="coui://ui/mods/com.lem0.pat-qol/core/ns.js"></script>
     <script type="text/javascript" src="coui://ui/mods/com.lem0.pat-qol/core/log.js"></script>

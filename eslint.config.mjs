@@ -23,7 +23,7 @@ export default [
                 eventSystem: 'readonly', triggerModel: 'readonly', app: 'readonly',
                 ko: 'readonly', $: 'readonly', _: 'readonly',
                 loc: 'readonly', loadHtml: 'readonly', loadScript: 'readonly',
-                loadCSS: 'readonly',
+                loadCSS: 'readonly', Build: 'readonly',
                 // this mod
                 paqol: 'writable', paqolSchema: 'writable', paqolGeometry: 'writable',
                 paqolTimefmt: 'writable', paqolRing: 'writable', paqolHvt: 'writable',
