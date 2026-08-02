@@ -142,6 +142,33 @@ if (fs.existsSync(uiMods)) {
     }
 }
 
+// ---- base-file shadow drift ------------------------------------------------
+// The mod ships one whole-file shadow (live_game/js/audio.js). If PA patches
+// the original, the shadow silently reverts those changes — so when the
+// installed game is reachable, verify the base file still matches the
+// fingerprint the shadow was built from. Re-sync with
+// tools/rebuild-audio-shadow.sh after a PA patch.
+const SHADOW_BASE_MD5 = '64c22eb21ad50941d61f2b80bba6d9bf'; // synced by rebuild-audio-shadow.sh
+const SHADOW_REL = 'ui/main/game/live_game/js/audio.js';
+{
+    const candidates = [
+        process.env.PA_MEDIA,
+        '/mnt/nvme-2-4tb/SteamLibrary/steamapps/common/Planetary Annihilation Titans/media'
+    ].filter(Boolean);
+    const mediaDir = candidates.find((c) => fs.existsSync(path.join(c, SHADOW_REL)));
+    if (mediaDir) {
+        const { createHash } = await import('node:crypto');
+        const md5 = createHash('md5')
+            .update(fs.readFileSync(path.join(mediaDir, SHADOW_REL)))
+            .digest('hex');
+        if (md5 !== SHADOW_BASE_MD5)
+            fail(`PA patched ${SHADOW_REL} (md5 ${md5.slice(0, 8)}… != recorded ${SHADOW_BASE_MD5.slice(0, 8)}…) — ` +
+                'run tools/rebuild-audio-shadow.sh to re-sync the shadow');
+    } else {
+        console.log('note: base game not found (set PA_MEDIA to enable the shadow drift check)');
+    }
+}
+
 // ---- verdict ---------------------------------------------------------------
 if (problems.length) {
     console.error(`check-modinfo: ${problems.length} problem(s):`);

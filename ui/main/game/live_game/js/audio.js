@@ -1,9 +1,10 @@
-/* PA QoL (com.lem0.pat-qol) SHADOW of the base game's
-   ui/main/game/live_game/js/audio.js (build 124667, md5 64c22eb2...).
+/* PA:T QoL (com.lem0.pat-qol) SHADOW of the base game's
+   ui/main/game/live_game/js/audio.js (md5 64c22eb21ad50941d61f2b80bba6d9bf).
    The ONLY change: priority_level_cooldown (how long a played voice line's
    priority keeps suppressing lower-priority lines; vanilla hardcodes 30 s)
    is read lazily from the mod's settings, default 3 s. Everything else is
-   byte-identical — re-diff against the base file after every PA patch. */
+   byte-identical — regenerate with tools/rebuild-audio-shadow.sh after
+   every PA patch. */
 var audioModel = (function () {
 
     /* determines the minimum time between responses. */
@@ -14,7 +15,7 @@ var audioModel = (function () {
 
     var audio_response_priority_level = 0;
     var starting_priority_level = 3;
-    /* PA QoL: was `var priority_level_cooldown = 30 * 1000;`. Read lazily so
+    /* PA:T QoL: was `var priority_level_cooldown = 30 * 1000;`. Read lazily so
        the mod (which loads after this file) can supply the configured value,
        and so this file still works stand-alone if the mod's JS never runs. */
     var priority_level_cooldown = function () {
@@ -61,7 +62,7 @@ var audioModel = (function () {
         if (level > 0)
             priority_level_timeout = setTimeout(function () {
                 setAudioResponsePriorityLevel(level - 1);
-            }, priority_level_cooldown()); /* PA QoL: was the constant */
+            }, priority_level_cooldown()); /* PA:T QoL: was the constant */
     };
     setAudioResponsePriorityLevel(starting_priority_level);
 

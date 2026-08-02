@@ -55,6 +55,8 @@
     // Build-bar icon is pure path derivation (shared/js/build.js). The
     // strategic ("zoomed out") icon needs si_name from the unit spec, which
     // may live up the base_spec chain — fetched lazily and cached per spec.
+    // BOUNDING INVARIANT: keyed by canonical spec path — bounded by the
+    // game's unit roster (~hundreds), never by unit ids. Keep it that way.
     var specCache = {}; // canonical spec -> {si: string|null}
     var specRev = ko.observable(0);
 
@@ -134,6 +136,7 @@
     // the near-black window. Lift anything below a luminance floor toward
     // white just enough to clear it — the hue survives, purple stays purple.
     var LUMA_FLOOR = 0.45;
+    // BOUNDING INVARIANT: keyed by army colour string — at most one per player.
     var brightCache = {};
     function brighten(color) {
         if (brightCache[color] !== undefined) return brightCache[color];
@@ -159,6 +162,7 @@
     function rowColorFor(row) {
         colorRev();
         if (!row) return '';
+        if (row.forceColor) return row.forceColor; // e.g. pings: always white
         if (row.army_id !== undefined && row.army_id !== null && armyColor[row.army_id])
             return brighten(armyColor[row.army_id]);
         if (row.hostile) return '#e88a8a';
@@ -166,9 +170,8 @@
         return '';
     }
 
-    // NOTE: the engine strips the sender from ping alerts (army_id -1), so
-    // pings render unattributed. The name path below only fires if a client
-    // ever receives a real army_id on a ping (untested in multiplayer).
+    // NOTE: ping alerts arrive with no sender (army_id -1) and are rendered
+    // as plain white 'Ping' rows by design.
 
     // ------------------------------------------------------------------ model
     model.role = role;
@@ -337,10 +340,12 @@
             row.display = alert.name ? String(alert.name) : 'Alert';
         } else if (wtName === 'ping') {
             // Pings are deliberate player communication: two pings are two
-            // messages — key null exempts them from coalescing.
-            var pinger = armyName[alert.army_id];
+            // messages — key null exempts them from coalescing. The engine
+            // strips the sender (army_id -1), so no attribution: always
+            // plain 'Ping', always white.
             row.key = null;
-            row.display = pinger ? 'Ping — ' + pinger : 'Ping';
+            row.display = 'Ping';
+            row.forceColor = '#ffffff';
         } else if (wtName === 'projectile') {
             // Every launch (nukes etc.) is its own tactical event with its
             // own trajectory — never merge them either.
@@ -530,6 +535,7 @@
     var cmdrIds = {};   // unit id -> {specKey} (accumulated; state poll prunes)
     function pollCommanders() {
         if (role !== 'paqol_units') return;
+        if (model.minimized()) return; // no fan-out while collapsed
         if (!window.api || typeof api.getWorldView !== 'function') return;
         var wv;
         try { wv = api.getWorldView(0); } catch (e) { return; }
@@ -593,6 +599,7 @@
     // work shows orders/build_target (or vanishes when dead).
     function pollIdleFactories() {
         if (role !== 'paqol_units') return;
+        if (model.minimized()) return; // no polling while collapsed
         var ids = _.map(_.keys(idleFactories), Number);
         if (!ids.length) return;
         if (!window.api || typeof api.getWorldView !== 'function') return;
@@ -797,6 +804,7 @@
     // SVG colour-matrix: every output channel driven by the GREEN channel
     // scaled to the army colour, so yellow -> army colour, red -> black,
     // alpha preserved. One <filter> per distinct colour, generated on demand.
+    // BOUNDING INVARIANT: keyed by army colour — at most one per player.
     var tintFilters = {}; // css color -> filter element id
     function tintFilterId(color) {
         if (tintFilters[color]) return tintFilters[color];

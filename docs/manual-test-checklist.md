@@ -87,6 +87,13 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 32. Galactic War (`gw_play` → live game) → no errors.
 33. Disable the mod, restart → no residue; settings opens on a valid tab.
 
+## First human-vs-human multiplayer session (once, when it happens)
+
+- An ally pings → the row appears (plain white "Ping" — sender attribution
+  is impossible; the engine strips it).
+- Allied human commanders appear under OWN & ALLIED with working jumps
+  (worldview for human allies was only verified against GW co-op AI allies).
+
 ## Resolved spikes (answers baked into the design)
 
 - **S1 — symlink**: PA's VFS does NOT follow symlinks (`api.file.list` skips
