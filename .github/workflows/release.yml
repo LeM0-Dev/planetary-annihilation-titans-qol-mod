@@ -1,18 +1,20 @@
 name: release
 
-# Publishes a GitHub release for every new modinfo.json version pushed to
-# main. Each release keeps its own versioned ZIP (the historical record) and
-# also a stable-named ZIP, so the permanent URL
+# Publishes a GitHub release when main receives code under a NEW version.
+# The version is set MANUALLY on staging (modinfo.json + a CHANGELOG.md
+# section) before the release PR — tools/promote.sh validates and opens it.
+# A push whose version is already released FAILS this workflow on purpose.
+#
+# Each release carries its versioned ZIP (the historical record) and a
+# stable-named ZIP, so the permanent URL
 #   .../releases/latest/download/com.lem0.pa-qol.zip
-# always serves the newest build — GitHub's native "latest" pointer moves to
-# the newest release automatically.
+# always serves the newest build.
 
 on:
   push:
     branches: [main]
     # Only shipped code warrants a release — pushes that touch nothing under
-    # ui/ (docs, tooling, CI, even a bare modinfo version bump) are skipped.
-    # Use the manual trigger below to force a release anyway.
+    # ui/ (docs, tooling, CI) are skipped.
     paths:
       - 'ui/**'
   workflow_dispatch:
@@ -31,84 +33,43 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Resolve release version (auto-bump if current one is already released)
+      - name: Read version and enforce that it is new
         id: v
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           V=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')
+          echo "version=$V" >> "$GITHUB_OUTPUT"
 
-          if ! gh release view "v$V" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            # Version was bumped (promote.sh or manually) — release it as-is.
-            echo "version=$V" >> "$GITHUB_OUTPUT"
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::error::v$V is already released. Set a new version on staging" \
+                 "(modinfo.json + a CHANGELOG.md section) before the release PR — see tools/promote.sh."
+            exit 1
           fi
 
-          # Loop guard: never bump on top of our own bump commit.
-          if git log -1 --pretty=%s | grep -q '^ci: release auto-bump to v'; then
-            echo "version=$V" >> "$GITHUB_OUTPUT"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            exit 0
+          if ! grep -q "^## $V " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $V' section — write the release notes first."
+            exit 1
           fi
-
-          # Code landed on main under an already-released version (staging
-          # never bumps) — bump the patch here so the release can be made.
-          node -e '
-            const fs = require("fs");
-            const m = JSON.parse(fs.readFileSync("modinfo.json","utf8"));
-            const v = m.version.split(".").map(Number);
-            v[2] += 1;
-            m.version = v.join(".");
-            m.date = new Date().toISOString().slice(0, 10);
-            fs.writeFileSync("modinfo.json", JSON.stringify(m, null, 2) + "\n");
-            const ns = "ui/mods/com.lem0.pa-qol/core/ns.js";
-            fs.writeFileSync(ns, fs.readFileSync(ns, "utf8")
-              .replace(/paqol\.VERSION = \x27[^\x27]*\x27/, "paqol.VERSION = \x27" + m.version + "\x27"));
-          '
-          NEW=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add modinfo.json ui/mods/com.lem0.pa-qol/core/ns.js
-          git commit -m "ci: release auto-bump to v$NEW"
-          git push origin HEAD:main
-          echo "version=$NEW" >> "$GITHUB_OUTPUT"
-          echo "exists=false" >> "$GITHUB_OUTPUT"
-
-      - name: Note
-        id: exists
-        run: echo "exists=${{ steps.v.outputs.exists }}" >> "$GITHUB_OUTPUT"
 
       - name: Install dev tooling
-        if: steps.exists.outputs.exists == 'false'
         run: npm ci
 
       - name: Full check
-        if: steps.exists.outputs.exists == 'false'
         run: npm run lint && npm test && node tools/check-modinfo.mjs
 
       - name: Build package
-        if: steps.exists.outputs.exists == 'false'
         run: |
           sh tools/package.sh
           V="${{ steps.v.outputs.version }}"
           cp "dist/com.lem0.pa-qol-$V.zip" "dist/com.lem0.pa-qol.zip"
 
       - name: Publish release
-        if: steps.exists.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           V="${{ steps.v.outputs.version }}"
-          # Changelog section for this exact version; patch-level dev bumps
-          # between documented versions fall back to the newest section,
-          # labelled with the heading it came from.
           NOTES=$(awk -v ver="$V" '/^## /{ if (found) exit; if ($2 == ver) { found=1; next } } found' CHANGELOG.md)
-          if [ -z "$NOTES" ]; then
-            NEWEST=$(awk '/^## /{ print $2; exit }' CHANGELOG.md)
-            BODY=$(awk '/^## /{ if (found) exit; found=1; next } found' CHANGELOG.md)
-            NOTES=$(printf 'Incremental build on top of v%s:\n%s' "$NEWEST" "$BODY")
-          fi
           NOTES=$(printf '%s\n\n---\n**Downloads**: `com.lem0.pa-qol-%s.zip` is this release; `com.lem0.pa-qol.zip` is the same file under a stable name so `releases/latest/download/com.lem0.pa-qol.zip` always serves the newest version.' "$NOTES" "$V")
           gh release create "v$V" \
             --repo "$GITHUB_REPOSITORY" \

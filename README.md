@@ -46,8 +46,8 @@ maintenance actions:
 ## Install (players)
 
 1. Download the newest ZIP — permanent link:
-   **[com.lem0.pa-qol.zip](https://github.com/LeM0-Dev/galaxy-war-qol/releases/latest/download/com.lem0.pa-qol.zip)**
-   (older versions under [Releases](https://github.com/LeM0-Dev/galaxy-war-qol/releases)).
+   **[com.lem0.pa-qol.zip](https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/releases/latest/download/com.lem0.pa-qol.zip)**
+   (older versions under [Releases](https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/releases)).
 
 2. Extract it into a folder named `com.lem0.pa-qol` inside PA's `client_mods`
    directory, so that `modinfo.json` ends up at
@@ -101,7 +101,7 @@ in PA's local storage under `com.lem0.pa-qol/*` keys and survive updates.
 
 ```sh
 tools/install-copy.sh        # rsyncs the runtime files into PA's client_mods/
-                             # and bumps the patch version; re-run after edits
+                             # re-run after every edit, then restart PA
 ```
 
 (`tools/install-symlink.sh` exists but PA's VFS does not follow symlinks —
@@ -120,27 +120,22 @@ every change.
   gate) runs on every PR and every push to it.
 - **`main`** — the release branch. It only moves by promoting `staging`.
 
-### Versioning
+### Versioning and releasing
 
-The mod version moves **once per release**, never per commit:
+The version is set **manually, once per release**, on `staging`:
 
-- Commits and dev reinstalls on `staging` never change the version.
-- To release, run on `staging`:
+1. Edit `modinfo.json` → new `version`.
+2. Add a `## <version> — <date>` section to `CHANGELOG.md` — releases
+   without notes are rejected.
+3. Run `tools/promote.sh`. It validates both (new version, changelog section
+   present), syncs `paqol.VERSION`, runs the full check gate, pushes
+   `staging`, and opens a **Release vX** PR onto `main`.
 
-  ```sh
-  tools/promote.sh           # patch bump  (0.2.13 -> 0.2.14)
-  tools/promote.sh minor     # minor bump  (0.2.13 -> 0.3.0)
-  tools/promote.sh major     # major bump  (0.2.13 -> 1.0.0)
-  ```
-
-  It bumps `modinfo.json` + `paqol.VERSION`, runs the full check gate,
-  commits `release: vX`, pushes `staging`, and opens a **Release vX** PR onto
-  `main`. Merging that PR triggers the release workflow, which publishes the
-  GitHub release (versioned ZIP + stable `com.lem0.pa-qol.zip` for the
-  permanent latest-download URL). Releases are only minted when shipped code
-  (`ui/**`) changed.
-- Committing directly on `main` (avoid it) bumps the patch version once per
-  push cycle via `tools/install-copy.sh`.
+Merging that PR triggers the release workflow, which **fails on purpose** if
+the version is already released or the changelog section is missing, and
+otherwise publishes the GitHub release (versioned ZIP + stable
+`com.lem0.pa-qol.zip` for the permanent latest-download URL). Releases are
+only minted when shipped code (`ui/**`) changed.
 
 ### Tooling
 
