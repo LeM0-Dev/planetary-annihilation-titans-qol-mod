@@ -130,13 +130,37 @@
         return Build.iconForSpecId(row.specKey);
     }
 
+    // Dark army colours (deep purple, navy, forest green) are unreadable on
+    // the near-black window. Lift anything below a luminance floor toward
+    // white just enough to clear it — the hue survives, purple stays purple.
+    var LUMA_FLOOR = 0.45;
+    var brightCache = {};
+    function brighten(color) {
+        if (brightCache[color] !== undefined) return brightCache[color];
+        var m = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(color);
+        var out = color;
+        if (m) {
+            var r = +m[1], g = +m[2], b = +m[3];
+            var l = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            if (l < LUMA_FLOOR) {
+                var t = (LUMA_FLOOR - l) / (1 - l);
+                r = Math.round(r + (255 - r) * t);
+                g = Math.round(g + (255 - g) * t);
+                b = Math.round(b + (255 - b) * t);
+                out = 'rgb(' + r + ',' + g + ',' + b + ')';
+            }
+        }
+        brightCache[color] = out;
+        return out;
+    }
+
     // Owner colour when the roster knows the army, otherwise red for enemy,
     // white for ally, default for everything else.
     function rowColorFor(row) {
         colorRev();
         if (!row) return '';
         if (row.army_id !== undefined && row.army_id !== null && armyColor[row.army_id])
-            return armyColor[row.army_id];
+            return brighten(armyColor[row.army_id]);
         if (row.hostile) return '#e88a8a';
         if (row.allied) return '#ffffff';
         return '';
@@ -317,6 +341,13 @@
             var pinger = armyName[alert.army_id];
             row.key = null;
             row.display = pinger ? 'Ping — ' + pinger : 'Ping';
+        } else if (wtName === 'projectile') {
+            // Every launch (nukes etc.) is its own tactical event with its
+            // own trajectory — never merge them either.
+            row.key = null;
+            row.template = WATCH_VERBS.projectile;
+            row.fallbackName = specLabel(alert.spec_id);
+            row.isCommander = false;
         } else {
             row.key = 'wt:' + alert.watch_type + ':' + (specKey || '') + ':' +
                 (hostile ? 'h' : (allied ? 'a' : 'o'));
