@@ -10,8 +10,14 @@ if [ -L "$DEST" ]; then
     rm "$DEST"
 fi
 
-# Bump the patch version on every reinstall so the game (and the Community
-# Mods list) never shows a stale build as current.
+# Bump the patch version once per PUSH CYCLE, not per reinstall: if the local
+# version still equals the version on origin/main, this is the first change
+# since the last push -> bump. Later reinstalls before the next push reuse it.
+LOCAL_V=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')
+REMOTE_V=$(git show origin/main:modinfo.json 2>/dev/null | node -p 'JSON.parse(require("fs").readFileSync(0,"utf8")).version' 2>/dev/null || echo "")
+if [ -n "$REMOTE_V" ] && [ "$LOCAL_V" != "$REMOTE_V" ]; then
+    echo "version already bumped this push cycle ($LOCAL_V, origin has $REMOTE_V)"
+else
 node -e '
 const fs = require("fs");
 const p = "modinfo.json";
@@ -26,6 +32,7 @@ fs.writeFileSync(ns, fs.readFileSync(ns, "utf8")
     .replace(/paqol\.VERSION = \x27[^\x27]*\x27/, "paqol.VERSION = \x27" + m.version + "\x27"));
 console.log("version bumped to " + m.version);
 '
+fi
 mkdir -p "$DEST"
 rsync -a --delete \
     --include='/modinfo.json' \
