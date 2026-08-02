@@ -11,6 +11,7 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
 - [Install (development)](#install-development)
 - [Development](#development)
 - [Adding a feature](#adding-a-feature)
+- [License](#license)
 
 ## Features
 
@@ -189,3 +190,15 @@ Read these before writing code:
 A feature that throws in `init` is disabled alone with a console error; a
 feature whose `requires` are missing (PA patch moved a seam) is skipped with
 a warning. Other features keep running either way.
+
+## License
+
+[PA:T QoL Community License](LICENSE.md) — in short:
+
+- **Personal/private use**: free, modify as you like.
+- **Publishing a modified version**: allowed only if you contribute your
+  changes back as a pull request against this repository. Keeping your own
+  public fork is fine while you actively upstream its changes.
+- **Commercial / for-profit use**: not permitted without written permission.
+- The `js/audio.js` shadow and all game content remain the property of
+  Planetary Annihilation Inc.; this is unaffiliated fan work.

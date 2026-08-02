@@ -11,7 +11,7 @@ V=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("modinfo
 mkdir -p dist
 OUT="dist/com.lem0.pat-qol-$V.zip"
 rm -f "$OUT"
-zip -r -X -q "$OUT" modinfo.json ui
+zip -r -X -q "$OUT" modinfo.json LICENSE.md ui
 
 unzip -Z1 "$OUT" | grep -qx 'modinfo.json' \
   || { echo 'FAIL: modinfo.json is not at ZIP root'; exit 1; }
