@@ -10,6 +10,12 @@ name: release
 on:
   push:
     branches: [main]
+    # Only shipped code warrants a release — pushes that touch nothing under
+    # ui/ (docs, tooling, CI, even a bare modinfo version bump) are skipped.
+    # Use the manual trigger below to force a release anyway.
+    paths:
+      - 'ui/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
