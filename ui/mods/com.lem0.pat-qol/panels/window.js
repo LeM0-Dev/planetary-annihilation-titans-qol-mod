@@ -482,6 +482,33 @@
         $(document).on('mousewheel DOMMouseScroll', onWheel);
     })();
 
+    // Strategic icons are white mask images the game tints per army; render
+    // them as an army-coloured div with the icon as a -webkit-mask. The URL
+    // is probed once (missing atlas file would otherwise show as a solid
+    // colour square, since no mask = nothing masked out).
+    var maskProbe = {}; // url -> true/false once probed
+    ko.bindingHandlers.paqolMask = {
+        update: function (el, valueAccessor) {
+            var url = ko.unwrap(valueAccessor());
+            el.style.display = 'none';
+            if (!url) return;
+            if (maskProbe[url] === true) {
+                el.style.webkitMaskImage = 'url("' + url + '")';
+                el.style.display = '';
+                return;
+            }
+            if (maskProbe[url] === false) return;
+            var img = new Image();
+            img.onload = function () {
+                maskProbe[url] = true;
+                el.style.webkitMaskImage = 'url("' + url + '")';
+                el.style.display = '';
+            };
+            img.onerror = function () { maskProbe[url] = false; };
+            img.src = url;
+        }
+    };
+
     // ------------------------------------------------------------------ boot
     app.registerWithCoherent(model, handlers);
     ko.applyBindings(model);

@@ -16,7 +16,7 @@ export default [
                 localStorage: 'readonly', sessionStorage: 'readonly',
                 setTimeout: 'readonly', setInterval: 'readonly',
                 clearTimeout: 'readonly', clearInterval: 'readonly',
-                XMLHttpRequest: 'readonly',
+                XMLHttpRequest: 'readonly', Image: 'readonly',
                 // PA scene globals
                 model: 'readonly', handlers: 'readonly', api: 'readonly',
                 engine: 'readonly', constants: 'readonly', audioModel: 'readonly',

@@ -105,6 +105,13 @@ html, body {
     flex-shrink: 0;
 }
 
+/* strategic icon = army-coloured div, shaped by the icon as a mask */
+.paqol-row-sicon {
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
 .paqol-row-text {
     flex: 1;
     overflow: hidden;

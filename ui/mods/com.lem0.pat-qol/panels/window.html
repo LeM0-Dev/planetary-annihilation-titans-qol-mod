@@ -30,10 +30,9 @@
                     <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.buildIcon($data) }" />
                     <!-- /ko -->
-                    <!-- ko if: $root.siIcon($data) -->
-                    <img class="paqol-row-sicon" onerror="this.style.display='none'" onload="this.style.display=''"
-                         data-bind="attr: { src: $root.siIcon($data) }" />
-                    <!-- /ko -->
+                    <div class="paqol-row-sicon"
+                         data-bind="paqolMask: $root.siIcon($data),
+                                    style: { backgroundColor: $root.rowColor($data) || '#cfe0ea' }"></div>
                     <span class="paqol-row-text"
                           data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
                     <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
@@ -57,10 +56,9 @@
                     <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.buildIcon($data) }" />
                     <!-- /ko -->
-                    <!-- ko if: $root.siIcon($data) -->
-                    <img class="paqol-row-sicon" onerror="this.style.display='none'" onload="this.style.display=''"
-                         data-bind="attr: { src: $root.siIcon($data) }" />
-                    <!-- /ko -->
+                    <div class="paqol-row-sicon"
+                         data-bind="paqolMask: $root.siIcon($data),
+                                    style: { backgroundColor: $root.rowColor($data) || '#cfe0ea' }"></div>
                     <span class="paqol-row-text"
                           data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
                     <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
