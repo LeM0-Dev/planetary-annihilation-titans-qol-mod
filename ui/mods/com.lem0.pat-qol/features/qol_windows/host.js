@@ -233,12 +233,19 @@
                             : (String(p.stateToPlayer || '').indexOf('allied') === 0 ? 'allied' : 'hostile')
                     });
                 }
-                var planetCount = 0;
+                // Planet INDEX (worldview, unit state) and planet ID (camera
+                // targets) are DIFFERENT numbers (index 2 can be id 54939) —
+                // ship the mapping alongside the roster.
+                var planets = [];
                 try {
-                    if (typeof model.planetListState === 'function')
-                        planetCount = (model.planetListState().planets || []).length;
+                    if (typeof model.planetListState === 'function') {
+                        _.forEach(model.planetListState().planets || [], function (p) {
+                            if (p && typeof p.index === 'number')
+                                planets.push({ index: p.index, id: (typeof p.id === 'number') ? p.id : null });
+                        });
+                    }
                 } catch (e) { /* worldview scan will just skip planets */ }
-                return { roster: roster, planetCount: planetCount };
+                return { roster: roster, planetCount: planets.length, planets: planets };
             }
             function sendRoster() {
                 var payload = buildRosterPayload();

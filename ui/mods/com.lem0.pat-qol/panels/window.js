@@ -154,11 +154,11 @@
     model.minimized = ko.observable(false);
     model.jump = function (row) {
         var target = row && (row.location ? row : (row.entry && row.entry.location ? row.entry : null));
-        if (target && target.location) {
+        if (target && target.location && target.planet_id !== null && target.planet_id !== undefined) {
             api.camera.lookAt({ location: target.location, planet_id: target.planet_id, zoom: 'air' }, true);
             return;
         }
-        // commander rows may only know the planet (worldview state)
+        // no usable location+id pair — at least get the right planet
         if (row && row.planetIndex !== undefined && row.planetIndex !== null &&
             api.camera && typeof api.camera.focusPlanet === 'function')
             api.camera.focusPlanet(row.planetIndex);
@@ -403,6 +403,7 @@
     // armies — the same call the base game makes for the player's own army.
     var roster = [];            // [{id,index,name,color,defeated,state}]
     var planetCount = 0;        // worldview scans are per-planet
+    var planetIdByIndex = {};   // camera targets need the ID, not the index
     var combats = {};           // id -> {group, location, planet_id, at}
     var idleFactories = {};     // alert id (= unit id) -> row source
     var commanders = [];        // [{group, army_id, specKey, planet, location, idle}]
@@ -417,6 +418,12 @@
         if (!payload || !_.isArray(payload.roster)) return;
         roster = payload.roster;
         if (typeof payload.planetCount === 'number') planetCount = payload.planetCount;
+        if (_.isArray(payload.planets)) {
+            planetIdByIndex = {};
+            _.forEach(payload.planets, function (p) {
+                if (p && p.id !== null && p.id !== undefined) planetIdByIndex[p.index] = p.id;
+            });
+        }
         rev(rev() + 1);
     };
 
@@ -602,7 +609,10 @@
                 fallbackName: 'Commander', specKey: c.specKey, army_id: c.army_id,
                 idleTag: c.idle === true,
                 count: 1, seenText: '',
-                location: c.location, planet_id: c.planet, planetIndex: c.planet,
+                location: c.location,
+                planet_id: (c.planet !== null && planetIdByIndex[c.planet] !== undefined)
+                    ? planetIdByIndex[c.planet] : null,
+                planetIndex: c.planet,
                 clickable: !!(c.location || c.planet !== null)
             });
         });
