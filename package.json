@@ -1,0 +1,16 @@
+{
+  "name": "pa-qol-dev",
+  "private": true,
+  "description": "Dev tooling for the PA QoL mod (com.lem0.pa-qol). Nothing here ships in the mod ZIP.",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "lint": "eslint .",
+    "checkinfo": "node tools/check-modinfo.mjs",
+    "check": "npm run lint && npm test && npm run checkinfo",
+    "package": "sh tools/package.sh"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "ws": "^8.21.1"
+  }
+}

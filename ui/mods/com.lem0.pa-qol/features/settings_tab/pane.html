@@ -1,0 +1,69 @@
+<div class="option-list paqol-settings" id="paqol-settings-pane"
+     data-bind="visible: ($root.activeSettingsGroupIndex() === 900), deferBindingsUntilVisible: true">
+    <div data-bind="with: $root.paqolSettings">
+
+        <div class="paqol-settings-section">
+            <div class="paqol-settings-heading"><loc>Windows</loc></div>
+            <div class="paqol-settings-row">
+                <label><input type="checkbox" data-bind="checked: historyEnabled" /> <loc>Notification history window</loc></label>
+            </div>
+            <div class="paqol-settings-row">
+                <label><loc>History length</loc>
+                    <select data-bind="options: capOptions, value: historyCap, enable: historyEnabled"></select>
+                </label>
+            </div>
+            <div class="paqol-settings-row">
+                <label><input type="checkbox" data-bind="checked: hvtEnabled" /> <loc>Enemy target window</loc></label>
+            </div>
+            <div class="paqol-settings-row">
+                <label><input type="checkbox" data-bind="checked: hvtWidenWatchlist, enable: hvtEnabled" />
+                    <loc>Also track teleporters, Catalysts and Halleys (experimental; adds engine alerts)</loc></label>
+            </div>
+            <div class="paqol-settings-note">
+                <loc>Window changes apply at the start of the next game.</loc>
+            </div>
+        </div>
+
+        <div class="paqol-settings-section">
+            <div class="paqol-settings-heading"><loc>Voice notification priority</loc></div>
+            <div class="paqol-settings-note">
+                <loc>Higher priority wins when two voice lines compete. Disabling a notification silences its voice line only; visual alerts are unchanged.</loc>
+            </div>
+            <div class="paqol-settings-row">
+                <label><loc>Priority window (ms)</loc>
+                    <select data-bind="options: windowOptions, value: arbiterWindowMs"></select>
+                </label>
+            </div>
+
+            <!-- ko foreach: groups -->
+            <div class="paqol-settings-group">
+                <div class="paqol-settings-subheading" data-bind="text: $data.title"></div>
+                <!-- ko foreach: $data.rows -->
+                <div class="paqol-settings-row paqol-notify-row">
+                    <input type="checkbox" data-bind="checked: $data.enabled" />
+                    <span class="paqol-notify-title" data-bind="text: $data.title"></span>
+                    <select class="paqol-notify-priority"
+                            data-bind="options: [0,1,2,3,4,5,6], value: $data.priority, enable: $data.enabled"></select>
+                </div>
+                <!-- /ko -->
+            </div>
+            <!-- /ko -->
+        </div>
+
+        <div class="paqol-settings-section">
+            <div class="paqol-settings-heading"><loc>Maintenance</loc></div>
+            <div class="paqol-settings-row">
+                <div class="btn_std" data-bind="click: restoreDefaults, click_sound: 'default'">
+                    <div class="btn_label small"><loc>Restore PA QoL Defaults</loc></div>
+                </div>
+                <div class="btn_std" data-bind="click: resetGeometry, click_sound: 'default'">
+                    <div class="btn_label small"><loc>Reset Window Positions</loc></div>
+                </div>
+                <div class="btn_std" data-bind="click: resetLearnedSounds, click_sound: 'default'">
+                    <div class="btn_label small"><loc>Reset Learned Sounds</loc></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

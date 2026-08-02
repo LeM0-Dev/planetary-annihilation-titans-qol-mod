@@ -1,0 +1,2 @@
+/* PA QoL — shared base styles. Everything is namespaced paqol-*. */
+.paqol-clickable { cursor: pointer; }

@@ -1,0 +1,67 @@
+/* PA QoL — settings pane */
+.paqol-settings {
+    color: #cfe0ea;
+    /* The stock panes inherit scrolling from scene-specific ancestor rules
+       (#main .content .option-list); ours scrolls itself so it works both
+       from the main menu and embedded in-game. */
+    display: block !important;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    max-height: 72vh;
+    min-width: 700px;
+    padding-right: 12px;
+}
+
+.paqol-settings-section { margin: 12px 0 20px 0; }
+
+.paqol-settings-heading {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(120, 160, 190, 0.4);
+    margin-bottom: 8px;
+    padding-bottom: 3px;
+}
+
+.paqol-settings-subheading {
+    font-size: 13px;
+    color: #9db8c8;
+    margin: 10px 0 4px 0;
+    text-transform: uppercase;
+}
+
+.paqol-settings-row { padding: 3px 0; }
+.paqol-settings-row label { cursor: pointer; }
+
+.paqol-settings select {
+    margin-left: 8px;
+    padding: 1px 4px;
+    color: #cfe0ea;
+    background: #1a242c;
+    border: 1px solid rgba(120, 160, 190, 0.45);
+}
+.paqol-settings select option {
+    color: #cfe0ea;
+    background: #1a242c;
+}
+.paqol-settings select:disabled {
+    color: #5f7280;
+    border-color: rgba(120, 160, 190, 0.2);
+}
+
+.paqol-settings-note {
+    color: #7f97a6;
+    font-style: italic;
+    font-size: 12px;
+    margin: 4px 0;
+}
+
+.paqol-notify-row .paqol-notify-title {
+    display: inline-block;
+    min-width: 320px;
+    margin: 0 8px;
+}
+.paqol-notify-row .paqol-notify-priority { width: 52px; }
+
+.paqol-settings .btn_std { display: inline-block; margin-right: 10px; }

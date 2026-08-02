@@ -1,0 +1,12 @@
+# Dev-only paths, stripped from `git archive` output. The real release path is
+# tools/package.sh, which uses an include-list; this is belt-and-braces.
+docs/**            export-ignore
+test/**            export-ignore
+tools/**           export-ignore
+.github/**         export-ignore
+.claude/**         export-ignore
+*.md               export-ignore
+package.json       export-ignore
+package-lock.json  export-ignore
+eslint.config.mjs  export-ignore
+.gitattributes     export-ignore

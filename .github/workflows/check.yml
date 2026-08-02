@@ -1,0 +1,39 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dev tooling
+        run: npm ci
+
+      - name: Lint (ES5 enforcement for ui/mods/**, Chrome 40 rules)
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Release gate (modinfo, scene refs, casing, orphans, const ban)
+        run: node tools/check-modinfo.mjs
+
+      - name: Build package (modinfo at ZIP root, lowercase paths)
+        run: sh tools/package.sh
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod-zip
+          path: dist/*.zip
+          if-no-files-found: error

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="coui://ui/mods/com.lem0.pa-qol/panels/window.css">
+</head>
+<body>
+    <div class="paqol-win">
+        <div class="paqol-win-title" id="paqol-win-title">
+            <span class="paqol-win-title-text" data-bind="text: title"></span>
+            <div class="paqol-win-btn" id="paqol-win-minimize"
+                 data-bind="text: minimized() ? '+' : '−'"></div>
+        </div>
+
+        <div class="paqol-win-body" data-bind="visible: !minimized()">
+
+            <!-- ko if: role === 'paqol_history' -->
+            <div class="paqol-list">
+                <div class="paqol-empty" data-bind="visible: rows().length === 0">No notifications yet.</div>
+                <!-- ko foreach: rows -->
+                <div class="paqol-row"
+                     data-bind="css: { 'paqol-clickable': !!$data.location, 'paqol-hostile': $data.hostile },
+                                click: function () { $root.jump($data); }">
+                    <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
+                    <span class="paqol-row-text" data-bind="text: $data.text"></span>
+                </div>
+                <!-- /ko -->
+                <div class="paqol-row-more" data-bind="visible: hiddenCount() > 0">
+                    <span data-bind="text: '+ ' + hiddenCount() + ' older'"></span>
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <!-- ko if: role === 'paqol_hvt' -->
+            <div class="paqol-list">
+                <div class="paqol-empty" data-bind="visible: rows().length === 0">No high-value targets spotted.</div>
+                <!-- ko foreach: rows -->
+                <div class="paqol-row paqol-hostile"
+                     data-bind="css: { 'paqol-clickable': $data.clickable, 'paqol-stale': $data.stale },
+                                click: function () { $root.jump($data); }">
+                    <span class="paqol-row-text" data-bind="text: $data.label"></span>
+                    <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
+                </div>
+                <!-- /ko -->
+            </div>
+            <!-- /ko -->
+
+        </div>
+        <div class="paqol-win-grip" id="paqol-win-grip" data-bind="visible: !minimized()"></div>
+    </div>
+
+    <script type="text/javascript" src="coui://ui/main/game/live_game/js/constants.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/ns.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/log.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/invariant.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/safe.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/shared/schema.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/store.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/core/pa_constants.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/shared/timefmt.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/shared/ring.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/shared/hvt_classify.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/features/notify_priority/defaults.js"></script>
+    <script type="text/javascript" src="coui://ui/mods/com.lem0.pa-qol/panels/window.js"></script>
+</body>
+</html>

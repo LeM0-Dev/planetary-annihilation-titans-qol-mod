@@ -1,0 +1,116 @@
+/* PA QoL — floating window panel page. The whole page IS the window:
+   the parent live_game scene owns the <panel> element whose box defines
+   where this view is composited. */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+.paqol-win {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(14, 18, 22, 0.92);
+    border: 1px solid rgba(120, 160, 190, 0.45);
+    color: #cfe0ea;
+    font-family: sans-serif;
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.paqol-win-title {
+    height: 22px;
+    line-height: 22px;
+    padding: 0 6px;
+    background: rgba(40, 58, 72, 0.95);
+    border-bottom: 1px solid rgba(120, 160, 190, 0.35);
+    cursor: move;
+    -webkit-user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+}
+
+.paqol-win-title-text {
+    display: inline-block;
+    max-width: 80%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    vertical-align: top;
+}
+
+.paqol-win-btn {
+    float: right;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    color: #9db8c8;
+    border: 1px solid transparent;
+}
+.paqol-win-btn:hover {
+    color: #ffffff;
+    border-color: rgba(120, 160, 190, 0.5);
+    background: rgba(80, 110, 135, 0.4);
+}
+
+.paqol-win-body {
+    position: absolute;
+    top: 23px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.paqol-win-grip {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: se-resize;
+    background:
+        linear-gradient(135deg, transparent 50%, rgba(120, 160, 190, 0.6) 50%);
+}
+
+/* rows */
+.paqol-list { padding: 2px 0; }
+
+.paqol-row {
+    padding: 2px 6px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(120, 160, 190, 0.12);
+}
+
+.paqol-row.paqol-clickable { cursor: pointer; }
+.paqol-row.paqol-clickable:hover { background: rgba(80, 110, 135, 0.35); }
+.paqol-row.paqol-hostile .paqol-row-text,
+.paqol-row.paqol-hostile.paqol-row .paqol-row-text { color: #e88a8a; }
+.paqol-row.paqol-stale { opacity: 0.5; }
+
+.paqol-row-time {
+    display: inline-block;
+    min-width: 44px;
+    color: #7f97a6;
+    font-family: monospace;
+}
+.paqol-row .paqol-row-time { float: none; }
+.paqol-hvt-time { float: right; }
+
+.paqol-row-more,
+.paqol-empty {
+    padding: 4px 6px;
+    color: #7f97a6;
+    font-style: italic;
+}

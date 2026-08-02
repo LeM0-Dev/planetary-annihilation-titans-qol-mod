@@ -1,0 +1,72 @@
+name: release
+
+# Publishes a GitHub release for every new modinfo.json version pushed to
+# main. Each release keeps its own versioned ZIP (the historical record) and
+# also a stable-named ZIP, so the permanent URL
+#   .../releases/latest/download/com.lem0.pa-qol.zip
+# always serves the newest build — GitHub's native "latest" pointer moves to
+# the newest release automatically.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Read version
+        id: v
+        run: echo "version=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.v.outputs.version }}" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dev tooling
+        if: steps.exists.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Full check
+        if: steps.exists.outputs.exists == 'false'
+        run: npm run lint && npm test && node tools/check-modinfo.mjs
+
+      - name: Build package
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          sh tools/package.sh
+          V="${{ steps.v.outputs.version }}"
+          cp "dist/com.lem0.pa-qol-$V.zip" "dist/com.lem0.pa-qol.zip"
+
+      - name: Publish release
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${{ steps.v.outputs.version }}"
+          NOTES=$(awk -v ver="$V" '/^## /{ if (found) exit; if ($2 == ver) { found=1; next } } found' CHANGELOG.md)
+          [ -n "$NOTES" ] || NOTES="PA QoL v$V"
+          gh release create "v$V" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "PA QoL v$V" \
+            --notes "$NOTES" \
+            --latest \
+            "dist/com.lem0.pa-qol-$V.zip" \
+            "dist/com.lem0.pa-qol.zip"
