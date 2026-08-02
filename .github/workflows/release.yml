@@ -46,7 +46,7 @@ jobs:
           fi
 
           # Loop guard: never bump on top of our own bump commit.
-          if git log -1 --pretty=%s | grep -q '^ci: auto-bump'; then
+          if git log -1 --pretty=%s | grep -q '^ci: release auto-bump to v'; then
             echo "version=$V" >> "$GITHUB_OUTPUT"
             echo "exists=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -70,7 +70,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add modinfo.json ui/mods/com.lem0.pa-qol/core/ns.js
-          git commit -m "ci: auto-bump version to v$NEW for release"
+          git commit -m "ci: release auto-bump to v$NEW"
           git push origin HEAD:main
           echo "version=$NEW" >> "$GITHUB_OUTPUT"
           echo "exists=false" >> "$GITHUB_OUTPUT"
