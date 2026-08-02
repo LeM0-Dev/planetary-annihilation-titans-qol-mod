@@ -29,6 +29,8 @@
                 WINDOWS.push({ name: 'paqol_history', def: { left: 8, top: 220, width: 340, height: 300 } });
             if (prefs.hvtEnabled !== false)
                 WINDOWS.push({ name: 'paqol_hvt', def: { left: 8, top: 540, width: 300, height: 220 } });
+            if (prefs.unitsEnabled !== false)
+                WINDOWS.push({ name: 'paqol_units', def: { left: 360, top: 220, width: 300, height: 260 } });
 
             if (!WINDOWS.length) {
                 paqol.log.info('both QoL windows are disabled in settings.');
@@ -203,6 +205,36 @@
                 });
             });
 
+            // --------------------------------------------- roster forwarding
+            // The units window needs alliances and army INDICES (worldview
+            // API is index-based); player_data has neither. Forward a slim
+            // roster derived from model.players() whenever it changes.
+            function sendRoster() {
+                if (typeof model.players !== 'function') return;
+                var players = model.players() || [];
+                var ownId = (typeof model.armyId === 'function') ? model.armyId() : undefined;
+                var roster = [];
+                for (var i = 0; i < players.length; i++) {
+                    var p = players[i];
+                    if (!p || p.replay) continue;
+                    roster.push({
+                        id: p.id,
+                        index: i,
+                        name: p.name,
+                        color: p.color,
+                        defeated: p.defeated === true,
+                        state: (p.id === ownId) ? 'own'
+                            : (p.stateToPlayer === 'allied' ? 'allied' : 'hostile')
+                    });
+                }
+                messageChild('paqol_units', 'paqol_roster', { roster: roster });
+            }
+            if (model.players && typeof model.players.subscribe === 'function' &&
+                prefs.unitsEnabled !== false) {
+                model.players.subscribe(sendRoster);
+                _.delay(sendRoster, 3000); // panel view needs a moment to register
+            }
+
             // ------------------------------------- derived event forwarding
             // nuke_ready / commander_destroyed / ... only exist as
             // processExternalUnitEvent calls inside live_game; forward the
@@ -233,17 +265,29 @@
             // their most distinctive engine type.
             if (targets.angel !== false) extraTypes.push('MissileDefense');
 
-            if (extraTypes.length && prefs.hvtEnabled !== false) {
+            var widenSight = extraTypes.length > 0 && prefs.hvtEnabled !== false;
+            // Own idle factories only alert if the idle watch list is
+            // populated — the base game ships it EMPTY ("disabled until the
+            // alert ui can be cleaned up").
+            var widenIdle = prefs.unitsEnabled !== false;
+
+            // ONE wrap for both concerns: safeWrap correctly refuses to wrap
+            // the same function twice.
+            if (widenSight || widenIdle) {
                 paqol.safeWrap(model, 'setupWatchList', function (callOriginal) {
                     var result = callOriginal();
                     if (window.engine && typeof engine.call === 'function') {
-                        var include = ['Factory', 'Commander', 'Recon', 'Important', 'Titan']
-                            .concat(extraTypes);
-                        var exclude = ['Wall'];
-                        engine.call('watchlist.setSightAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
-                        engine.call('watchlist.setDeathAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
-                        engine.call('watchlist.setTargetDestroyedAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
-                        paqol.log.info('watch lists widened (' + extraTypes.join('/') + ').');
+                        if (widenSight) {
+                            var include = ['Factory', 'Commander', 'Recon', 'Important', 'Titan']
+                                .concat(extraTypes);
+                            var exclude = ['Wall'];
+                            engine.call('watchlist.setSightAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
+                            engine.call('watchlist.setDeathAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
+                            engine.call('watchlist.setTargetDestroyedAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
+                            paqol.log.info('watch lists widened (' + extraTypes.join('/') + ').');
+                        }
+                        if (widenIdle)
+                            engine.call('watchlist.setIdleAlertTypes', JSON.stringify(['Factory']), JSON.stringify([]));
                     }
                     return result;
                 }, 'model.setupWatchList');

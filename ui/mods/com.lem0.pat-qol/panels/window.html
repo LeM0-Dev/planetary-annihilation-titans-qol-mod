@@ -69,6 +69,47 @@
             </div>
             <!-- /ko -->
 
+            <!-- ko if: role === 'paqol_units' -->
+            <div class="paqol-list">
+                <div class="paqol-group-heading">OWN</div>
+                <div class="paqol-empty" data-bind="visible: ownRows().length === 0">Nothing to show.</div>
+                <!-- ko foreach: ownRows -->
+                <div class="paqol-row"
+                     data-bind="css: { 'paqol-clickable': $data.clickable },
+                                click: function () { $root.jump($data); },
+                                event: { contextmenu: function () { return $root.dismiss($data); } }">
+                    <!-- ko if: $root.buildIcon($data) -->
+                    <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
+                         data-bind="attr: { src: $root.buildIcon($data) }" />
+                    <!-- /ko -->
+                    <img class="paqol-row-sicon" data-bind="paqolSiTint: $root.rowColor($data), attr: { src: $root.siIcon($data) }, visible: !!$root.siIcon($data)"
+                         onerror="this.style.display='none'" onload="this.style.display=''" />
+                    <span class="paqol-row-text"
+                          data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
+                    <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
+                </div>
+                <!-- /ko -->
+                <div class="paqol-group-heading">ALLIED</div>
+                <div class="paqol-empty" data-bind="visible: alliedRows().length === 0">Nothing to show.</div>
+                <!-- ko foreach: alliedRows -->
+                <div class="paqol-row"
+                     data-bind="css: { 'paqol-clickable': $data.clickable },
+                                click: function () { $root.jump($data); },
+                                event: { contextmenu: function () { return $root.dismiss($data); } }">
+                    <!-- ko if: $root.buildIcon($data) -->
+                    <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
+                         data-bind="attr: { src: $root.buildIcon($data) }" />
+                    <!-- /ko -->
+                    <img class="paqol-row-sicon" data-bind="paqolSiTint: $root.rowColor($data), attr: { src: $root.siIcon($data) }, visible: !!$root.siIcon($data)"
+                         onerror="this.style.display='none'" onload="this.style.display=''" />
+                    <span class="paqol-row-text"
+                          data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
+                    <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
+                </div>
+                <!-- /ko -->
+            </div>
+            <!-- /ko -->
+
         </div>
         <div class="paqol-win-grip" id="paqol-win-grip" data-bind="visible: !minimized()"></div>
     </div>

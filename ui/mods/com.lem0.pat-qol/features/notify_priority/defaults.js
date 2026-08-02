@@ -140,12 +140,13 @@
         });
 
         paqol.store.define('prefs', {
-            version: 4,
+            version: 5,
             defaults: {
                 historyEnabled: true,
                 historyCap: 300,
                 hvtEnabled: true,
                 hvtTargets: window.paqolNotifyDefaults.buildHvtTargets(),
+                unitsEnabled: true,
                 arbiterWindowMs: 3000,
                 audioDecayMs: 3000
             },
@@ -177,6 +178,12 @@
                     if (data.hvtTargets.angel === undefined) data.hvtTargets.angel = true;
                     fromVersion = 4;
                 }
+                // v5 adds the Own & Allied units window.
+                if (fromVersion === 4) {
+                    data = data || {};
+                    data.unitsEnabled = true;
+                    fromVersion = 5;
+                }
                 return { version: fromVersion, data: data };
             },
             validate: function (d) {
@@ -188,6 +195,7 @@
                     historyCap: paqolSchema.intRange(50, 2000),
                     hvtEnabled: paqolSchema.bool,
                     hvtTargets: paqolSchema.object(targetShape),
+                    unitsEnabled: paqolSchema.bool,
                     arbiterWindowMs: paqolSchema.intRange(500, 15000),
                     audioDecayMs: paqolSchema.intRange(500, 60000)
                 }));

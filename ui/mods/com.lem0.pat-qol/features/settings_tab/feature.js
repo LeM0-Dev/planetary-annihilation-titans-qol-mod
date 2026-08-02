@@ -73,6 +73,7 @@
                 self.historyEnabled = ko.observable(prefs.historyEnabled !== false);
                 self.historyCap = ko.observable(typeof prefs.historyCap === 'number' ? prefs.historyCap : 300);
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
+                self.unitsEnabled = ko.observable(prefs.unitsEnabled !== false);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
                 self.audioDecayMs = ko.observable(
@@ -109,6 +110,7 @@
                         historyCap: Number(self.historyCap()),
                         hvtEnabled: self.hvtEnabled() === true,
                         hvtTargets: hvtTargets,
+                        unitsEnabled: self.unitsEnabled() === true,
                         arbiterWindowMs: Number(self.arbiterWindowMs()),
                         audioDecayMs: Number(self.audioDecayMs())
                     });
@@ -119,7 +121,7 @@
                     row.priority.subscribe(save);
                 });
                 _.forEach([self.historyEnabled, self.historyCap, self.hvtEnabled,
-                    self.arbiterWindowMs, self.audioDecayMs],
+                    self.unitsEnabled, self.arbiterWindowMs, self.audioDecayMs],
                     function (obs) { obs.subscribe(save); });
                 _.forEach(self.targetRows, function (row) { row.enabled.subscribe(save); });
 
@@ -131,6 +133,7 @@
                     self.historyEnabled(true);
                     self.historyCap(300);
                     self.hvtEnabled(true);
+                    self.unitsEnabled(true);
                     _.forEach(self.targetRows, function (row) { row.enabled(true); });
                     self.arbiterWindowMs(3000);
                     self.audioDecayMs(3000);

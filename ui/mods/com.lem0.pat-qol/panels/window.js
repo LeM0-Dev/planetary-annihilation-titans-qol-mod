@@ -17,7 +17,7 @@
     var handlers = {};
 
     var role = (window.api && api.Panel && api.Panel.pageName) || '';
-    if (role !== 'paqol_history' && role !== 'paqol_hvt') {
+    if (role !== 'paqol_history' && role !== 'paqol_hvt' && role !== 'paqol_units') {
         console.error('[' + paqol.MOD_ID + '] window page loaded with unknown panel name "' + role + '"');
         return;
     }
@@ -148,12 +148,20 @@
 
     // ------------------------------------------------------------------ model
     model.role = role;
-    model.title = ko.observable(role === 'paqol_history' ? 'Notification History' : 'Enemy Targets');
+    model.title = ko.observable(
+        role === 'paqol_history' ? 'Notification History'
+            : (role === 'paqol_hvt' ? 'Enemy Targets' : 'Own & Allied'));
     model.minimized = ko.observable(false);
     model.jump = function (row) {
         var target = row && (row.location ? row : (row.entry && row.entry.location ? row.entry : null));
-        if (!target || !target.location) return;
-        api.camera.lookAt({ location: target.location, planet_id: target.planet_id, zoom: 'air' }, true);
+        if (target && target.location) {
+            api.camera.lookAt({ location: target.location, planet_id: target.planet_id, zoom: 'air' }, true);
+            return;
+        }
+        // commander rows may only know the planet (worldview state)
+        if (row && row.planetIndex !== undefined && row.planetIndex !== null &&
+            api.camera && typeof api.camera.focusPlanet === 'function')
+            api.camera.focusPlanet(row.planetIndex);
     };
 
     // template helpers (shared by both roles)
@@ -196,6 +204,10 @@
             ring.remove(row);
             if (row.key && lastByKey[row.key] && lastByKey[row.key].row === row)
                 delete lastByKey[row.key];
+        } else if (role === 'paqol_units') {
+            if (row.kind === 'combat') delete combats[row.refId];
+            else if (row.kind === 'idle') delete idleFactories[row.refId];
+            // commander rows are re-polled; dismissing them is meaningless
         } else if (row.entry && entries[row.entry.id]) {
             delete entries[row.entry.id];
         }
@@ -381,6 +393,194 @@
         });
     }
 
+    // ---- OWN & ALLIED state ('paqol_units' role) --------------------------
+    // Three feeds: the roster (host push, alliances + army indices), the
+    // engine's combat_list broadcast, and idle-factory watch alerts (the
+    // host repopulates the engine's idle watch list, which ships empty).
+    // Commanders are found by polling the worldview API for own/allied
+    // armies — the same call the base game makes for the player's own army.
+    var roster = [];            // [{id,index,name,color,defeated,state}]
+    var combats = {};           // id -> {group, location, planet_id, at}
+    var idleFactories = {};     // alert id -> row source
+    var commanders = [];        // [{group, army_id, specKey, planet, location}]
+
+    function rosterGroup(armyId) {
+        for (var i = 0; i < roster.length; i++)
+            if (roster[i].id === armyId) return roster[i].state;
+        return null;
+    }
+
+    handlers.paqol_roster = function (payload) {
+        if (!payload || !_.isArray(payload.roster)) return;
+        roster = payload.roster;
+        rev(rev() + 1);
+    };
+
+    handlers.combat_list = function (payload) {
+        if (role !== 'paqol_units' || !payload || !_.isArray(payload.list)) return;
+        var changed = false;
+        for (var i = 0; i < payload.list.length; i++) {
+            var c = payload.list[i];
+            if (!c || c.id === undefined) continue;
+            // which of my/allied armies is involved?
+            var group = null;
+            _.forEach(c.damaged_entities || [], function (ent) {
+                if (!ent || group === 'own') return;
+                var r = roster[ent.army_idx];
+                if (r && (r.state === 'own' || (r.state === 'allied' && group === null)))
+                    group = r.state;
+            });
+            if (!group) continue;
+            combats[c.id] = {
+                id: c.id,
+                group: group,
+                location: c.last_location || c.average_location || null,
+                planet_id: (c.planet_id === undefined) ? null : c.planet_id,
+                at: (typeof c.last_event_time === 'number') ? c.last_event_time : gameTime,
+                expires: (typeof c.last_event_time === 'number' && typeof c.lifespan === 'number')
+                    ? c.last_event_time + c.lifespan : null
+            };
+            changed = true;
+        }
+        if (changed) rev(rev() + 1);
+    };
+
+    function unitsIngest(alert) {
+        var WT = constants.watch_type;
+        if (alert.is_hostile === true) return;
+        if (alert.watch_type === WT.idle) {
+            var group = rosterGroup(alert.army_id) || 'own';
+            if (group === 'hostile') return;
+            idleFactories[alert.id] = {
+                group: group,
+                specKey: canonicalSpec(alert.spec_id),
+                fallbackName: specLabel(alert.spec_id),
+                army_id: alert.army_id,
+                location: alert.location || null,
+                planet_id: (alert.planet_id === undefined) ? null : alert.planet_id,
+                at: gameTime
+            };
+            rev(rev() + 1);
+        } else if (alert.watch_type === WT.death || alert.watch_type === WT.target_destroyed) {
+            if (idleFactories[alert.id]) { delete idleFactories[alert.id]; rev(rev() + 1); }
+        } else if (alert.watch_type === WT.ready && alert.location) {
+            // a unit rolled out: any "idle" factory right there is idle no more
+            var cleared = false;
+            _.forEach(idleFactories, function (f, id) {
+                if (!f.location) return;
+                var dx = f.location.x - alert.location.x;
+                var dy = f.location.y - alert.location.y;
+                var dz = f.location.z - alert.location.z;
+                if ((dx * dx + dy * dy + dz * dz) < 40 * 40) { delete idleFactories[id]; cleared = true; }
+            });
+            if (cleared) rev(rev() + 1);
+        }
+    }
+
+    // Commander poll: worldview is army-INDEX based; own+allied indices come
+    // from the roster. Field availability of getUnitState results varies by
+    // build, so location is treated as optional.
+    function pollCommanders() {
+        if (role !== 'paqol_units') return;
+        if (!window.api || typeof api.getWorldView !== 'function') return;
+        var wv;
+        try { wv = api.getWorldView(0); } catch (e) { return; }
+        if (!wv || typeof wv.getArmyUnits !== 'function') return;
+
+        var mine = _.filter(roster, function (r) {
+            return (r.state === 'own' || r.state === 'allied') && !r.defeated;
+        });
+        var next = [];
+        var pending = mine.length;
+        if (!pending) return;
+
+        _.forEach(mine, function (r) {
+            wv.getArmyUnits(r.index, -1).then(function (bySpec) {
+                var ids = [];
+                var specKey = null;
+                _.forEach(bySpec || {}, function (unitIds, spec) {
+                    if (/\/commanders\/|bot_support_commander/.test(spec) && _.isArray(unitIds) && unitIds.length) {
+                        ids = ids.concat(unitIds);
+                        specKey = canonicalSpec(spec);
+                    }
+                });
+                var finish = function (states) {
+                    _.forEach(ids, function (unitId, idx) {
+                        var st = (states && states[idx]) || {};
+                        next.push({
+                            group: r.state,
+                            army_id: r.id,
+                            specKey: specKey,
+                            planet: (typeof st.planet === 'number') ? st.planet : null,
+                            location: (st.location && typeof st.location.x === 'number') ? st.location : null
+                        });
+                    });
+                    if (--pending === 0) { commanders = next; rev(rev() + 1); }
+                };
+                if (ids.length && typeof wv.getUnitState === 'function')
+                    wv.getUnitState(ids).then(finish, function () { finish(null); });
+                else finish(null);
+            }, function () {
+                if (--pending === 0) { commanders = next; rev(rev() + 1); }
+            });
+        });
+    }
+    if (role === 'paqol_units') setInterval(pollCommanders, 5000);
+
+    function unitsRowsFor(group) {
+        var out = [];
+        _.forEach(commanders, function (c) {
+            if (c.group !== group) return;
+            out.push({
+                kind: 'commander', isCommander: true, template: '',
+                fallbackName: 'Commander', specKey: c.specKey, army_id: c.army_id,
+                count: 1, seenText: '',
+                location: c.location, planet_id: null, planetIndex: c.planet,
+                clickable: !!(c.location || c.planet !== null)
+            });
+        });
+        var fights = _.sortBy(_.filter(_.values(combats), function (c) { return c.group === group; }),
+            function (c) { return -(c.at || 0); });
+        _.forEach(fights, function (c) {
+            out.push({
+                kind: 'combat', display: 'In combat', refId: c.id,
+                army_id: undefined, specKey: null, count: 1,
+                seenText: paqolTimefmt.format(c.at),
+                location: c.location, planet_id: c.planet_id,
+                clickable: !!c.location
+            });
+        });
+        _.forEach(idleFactories, function (f, id) {
+            if (f.group !== group) return;
+            out.push({
+                kind: 'idle', template: '__name__ idle', refId: id,
+                fallbackName: f.fallbackName, specKey: f.specKey, army_id: f.army_id,
+                count: 1, seenText: paqolTimefmt.format(f.at),
+                location: f.location, planet_id: f.planet_id,
+                clickable: !!f.location
+            });
+        });
+        return out;
+    }
+
+    if (role === 'paqol_units') {
+        model.rows = ko.computed(function () { rev(); tick(); return []; }); // unused shell
+        model.ownRows = ko.computed(function () {
+            rev(); tick();
+            // expire stale combats
+            if (typeof gameTime === 'number') {
+                _.forEach(combats, function (c, id) {
+                    if (c.expires !== null && gameTime > c.expires) delete combats[id];
+                });
+            }
+            return unitsRowsFor('own');
+        });
+        model.alliedRows = ko.computed(function () {
+            rev(); tick();
+            return unitsRowsFor('allied');
+        });
+    }
+
     // --------------------------------------------------------------- handlers
     handlers.time = function (payload) {
         if (!payload || payload.view !== 0) return;
@@ -405,6 +605,7 @@
             var alert = payload.list[i];
             if (!alert || typeof alert !== 'object') continue;
             if (role === 'paqol_history') pushHistory(historyRow(alert));
+            else if (role === 'paqol_units') unitsIngest(alert);
             else hvtIngest(alert);
         }
     };
