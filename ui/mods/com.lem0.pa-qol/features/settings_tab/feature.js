@@ -75,8 +75,11 @@
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
+                self.audioDecayMs = ko.observable(
+                    typeof prefs.audioDecayMs === 'number' ? prefs.audioDecayMs : 3000);
                 self.capOptions = [100, 300, 500, 1000, 2000];
                 self.windowOptions = [1500, 3000, 5000, 8000];
+                self.decayOptions = [1500, 3000, 5000, 10000, 30000];
 
                 // per-category target toggles
                 var storedTargets = prefs.hvtTargets || {};
@@ -106,7 +109,8 @@
                         historyCap: Number(self.historyCap()),
                         hvtEnabled: self.hvtEnabled() === true,
                         hvtTargets: hvtTargets,
-                        arbiterWindowMs: Number(self.arbiterWindowMs())
+                        arbiterWindowMs: Number(self.arbiterWindowMs()),
+                        audioDecayMs: Number(self.audioDecayMs())
                     });
                 }, 300);
 
@@ -115,7 +119,7 @@
                     row.priority.subscribe(save);
                 });
                 _.forEach([self.historyEnabled, self.historyCap, self.hvtEnabled,
-                    self.arbiterWindowMs],
+                    self.arbiterWindowMs, self.audioDecayMs],
                     function (obs) { obs.subscribe(save); });
                 _.forEach(self.targetRows, function (row) { row.enabled.subscribe(save); });
 
@@ -129,6 +133,7 @@
                     self.hvtEnabled(true);
                     _.forEach(self.targetRows, function (row) { row.enabled(true); });
                     self.arbiterWindowMs(3000);
+                    self.audioDecayMs(3000);
                 };
 
                 self.resetGeometry = function () {

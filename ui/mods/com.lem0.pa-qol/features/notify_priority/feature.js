@@ -33,9 +33,19 @@
                     lastConfigLoad = now;
                     paqol.store.reload('notifications');
                     paqol.store.reload('prefs');
+                    publishDecay();
                 }
                 return paqol.store.get(name);
             }
+
+            // The shadowed js/audio.js reads paqol.audioDecayMs lazily for
+            // its priority decay (vanilla hardcodes 30 s).
+            function publishDecay() {
+                var prefs = paqol.store.get('prefs');
+                paqol.audioDecayMs = (prefs && typeof prefs.audioDecayMs === 'number')
+                    ? prefs.audioDecayMs : 3000;
+            }
+            publishDecay();
 
             var arbiter = paqolAudioArbiter.create({
                 getConfig: function () { return refreshedStore('notifications'); },

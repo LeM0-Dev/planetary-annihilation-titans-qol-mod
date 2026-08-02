@@ -136,18 +136,19 @@
         });
 
         paqol.store.define('prefs', {
-            version: 2,
+            version: 3,
             defaults: {
                 historyEnabled: true,
                 historyCap: 300,
                 hvtEnabled: true,
                 hvtTargets: window.paqolNotifyDefaults.buildHvtTargets(),
-                arbiterWindowMs: 3000
+                arbiterWindowMs: 3000,
+                audioDecayMs: 3000
             },
-            // v1 had a single hvtWidenWatchlist toggle covering the three
-            // categories that need widened engine watch lists; carry that
-            // choice into the per-category toggles.
             migrate: function (fromVersion, data) {
+                // v1 had a single hvtWidenWatchlist toggle covering the three
+                // categories that need widened engine watch lists; carry that
+                // choice into the per-category toggles.
                 if (fromVersion === 1) {
                     data = data || {};
                     var widen = data.hvtWidenWatchlist !== false;
@@ -157,6 +158,12 @@
                     data.hvtTargets.teleporter = widen;
                     delete data.hvtWidenWatchlist;
                     fromVersion = 2;
+                }
+                // v3 adds the voice priority decay (vanilla hardcodes 30 s).
+                if (fromVersion === 2) {
+                    data = data || {};
+                    data.audioDecayMs = 3000;
+                    fromVersion = 3;
                 }
                 return { version: fromVersion, data: data };
             },
@@ -169,7 +176,8 @@
                     historyCap: paqolSchema.intRange(50, 2000),
                     hvtEnabled: paqolSchema.bool,
                     hvtTargets: paqolSchema.object(targetShape),
-                    arbiterWindowMs: paqolSchema.intRange(500, 15000)
+                    arbiterWindowMs: paqolSchema.intRange(500, 15000),
+                    audioDecayMs: paqolSchema.intRange(500, 60000)
                 }));
             }
         });

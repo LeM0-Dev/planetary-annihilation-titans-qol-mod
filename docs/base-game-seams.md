@@ -25,7 +25,7 @@ All paths relative to `<install>/media/`.
 | `live_game/js/constants.js:66-207` | `constants.unit_type` | Bits: Commander=0, Teleporter=10, Nuke=17, NukeDefense=18, ControlModule=28, PlanetEngine=29, Titan=31, Important=55 (mirrored in `shared/hvt_classify.js`) |
 | `live_game/js/events.js:8-14` | `eventSystem.isType` | Bit layout `[3 - floor(bit/32)]`, mask `1 << (bit % 32)` (re-implemented in `hvt_classify`) |
 | `live_game/js/audio.js:1135` | `audioModel.processEvent` | The single audio choke point; `(event_type, sub_type)`; returns void |
-| `live_game/js/audio.js:1-115` | queue/priority machinery | 3 s queue slot, priorities 0-6, 30 s decay — all closure-private; our arbiter sits in front, never inside |
+| `live_game/js/audio.js:1-115` | queue/priority machinery | 3 s queue slot, priorities 0-6, 30 s decay — all closure-private; our arbiter sits in front. **⚠ WHOLE-FILE SHADOW**: `ui/main/game/live_game/js/audio.js` in this mod replaces the base file to make the 30 s decay configurable (`paqol.audioDecayMs`). After EVERY PA patch, diff the shadow against the new base file and re-apply the one marked change (base md5 at time of copy: 64c22eb2). A stale shadow silently reverts base-game audio fixes. |
 | `ui/main/shared/js/api/audio.js` | `api.audio.playSoundAtLocation` | Plain property, wrappable; `playSound` is the UI click path — never touched |
 | `ui/main/shared/js/api/camera.js:431` | `api.camera.lookAt({location, planet_id, zoom}, smooth)` | Auto-forwards from child panels via `camera_api` |
 | `live_game/live_game_unit_alert.js:469` | `/unit_cannon/` path match | The base game itself classifies unit cannons by spec path — no unit_type bit exists |

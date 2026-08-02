@@ -57,6 +57,14 @@
                     <select data-bind="options: windowOptions, value: arbiterWindowMs"></select>
                 </label>
             </div>
+            <div class="paqol-settings-row" data-search="priority decay ms cooldown mute suppress lower vanilla 30s">
+                <label><loc>Priority decay (ms)</loc>
+                    <select data-bind="options: decayOptions, value: audioDecayMs"></select>
+                </label>
+            </div>
+            <div class="paqol-settings-note">
+                <loc>Priority decay: after a voice line plays, its priority keeps suppressing lower-priority lines, stepping down one level per this interval. The base game hardcodes 30000 (a high-priority line effectively mutes everything for a long time); PA QoL defaults to 3000.</loc>
+            </div>
 
             <!-- ko foreach: groups -->
             <div class="paqol-settings-group">
