@@ -52,9 +52,17 @@
 
     // Local ping-mode state, pushed by the host: the engine strips the
     // sender from ping alerts (army_id -1), but ownerless pings arriving
-    // while YOU are in ping command mode are labelled "You".
+    // while YOU are in ping command mode are labelled "You". Clicking a ping
+    // usually exits the mode instantly while the alert arrives a few hundred
+    // ms later, so leaving the mode keeps a grace window open.
+    var PING_GRACE_MS = 2000;
     var localPingMode = false;
+    var localPingUntil = 0;
     var localArmyId = null;
+
+    function localPingLikely() {
+        return localPingMode || _.now() < localPingUntil;
+    }
 
     // ------------------------------------------------------------------ model
     model.role = role;
@@ -151,7 +159,7 @@
             if (pinger) {
                 text = 'Ping — ' + pinger;
                 color = armyColor[alert.army_id] || null;
-            } else if (localPingMode) {
+            } else if (localPingLikely()) {
                 text = 'Ping — You';
                 color = (localArmyId !== null && armyColor[localArmyId]) || null;
             } else {
@@ -285,7 +293,9 @@
     };
 
     handlers.paqol_local_ping_mode = function (payload) {
-        localPingMode = !!(payload && payload.active);
+        var active = !!(payload && payload.active);
+        if (!active && localPingMode) localPingUntil = _.now() + PING_GRACE_MS;
+        localPingMode = active;
         if (payload && payload.armyId !== undefined && payload.armyId !== null)
             localArmyId = payload.armyId;
     };
