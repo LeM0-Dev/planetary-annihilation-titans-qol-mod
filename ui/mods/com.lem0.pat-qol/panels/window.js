@@ -225,10 +225,13 @@
         linked: '__name__ linked'
     };
 
-    // Derived events that duplicate a watch alert we already render with a
-    // better row (name + location). Rendering both spams two rows for one
-    // thing — e.g. 'enemy_commander_under_attack' plus the commander's own
-    // red damage alert. The alert row wins; these are dropped.
+    // Derived events kept OUT of the history window. Two reasons:
+    //  - duplicates of a watch alert we already render with a better row
+    //    (name + location), e.g. 'enemy_commander_under_attack' next to the
+    //    commander's own red damage alert — the alert row wins;
+    //  - pure clutter with no tactical value as a log line (continuous-build
+    //    toggles fire constantly). Their VOICE lines are unaffected — that's
+    //    the settings tab's job.
     var SUPPRESSED_DERIVED = {
         commander_under_attack: true,
         allied_commander_under_attack: true,
@@ -237,7 +240,9 @@
         new_enemy_contact: true,
         commander_destroyed: true,
         allied_commander_destroyed: true,
-        enemy_commander_destroyed: true
+        enemy_commander_destroyed: true,
+        construction_continuous_on: true,
+        construction_continuous_off: true
     };
 
     if (role === 'paqol_history') {
