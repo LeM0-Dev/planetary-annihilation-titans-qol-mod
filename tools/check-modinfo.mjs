@@ -26,11 +26,17 @@ try {
     process.exit(1);
 }
 
-const requiredStrings = ['context', 'identifier', 'display_name', 'description', 'author', 'version', 'build', 'date'];
+// The archived Mod Structure spec marks all of these mandatory and non-empty.
+// 'signature' is a legacy field nothing generates or verifies; the documented
+// convention for it is a single space.
+const requiredStrings = ['context', 'identifier', 'display_name', 'description', 'author',
+    'version', 'build', 'date', 'signature', 'forum'];
 for (const key of requiredStrings) {
     if (typeof modinfo[key] !== 'string' || modinfo[key] === '')
         fail(`modinfo.json: required key "${key}" is missing or empty`);
 }
+if (!Array.isArray(modinfo.category) || modinfo.category.length === 0)
+    fail('modinfo.json: required key "category" must be a non-empty array');
 if (modinfo.context !== 'client') fail(`modinfo.json: context is "${modinfo.context}", expected "client"`);
 if (!/^[a-z0-9.-]+$/.test(modinfo.identifier ?? '')) fail('modinfo.json: identifier must be lowercase reverse-domain');
 if (!modinfo.scenes || typeof modinfo.scenes !== 'object') fail('modinfo.json: scenes map is missing');

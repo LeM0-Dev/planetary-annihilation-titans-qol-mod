@@ -9,11 +9,11 @@
   "date": "2026-08-02",
   "description": "Quality-of-life UI additions: per-notification enable/priority control, a persistent notification history with game-time stamps and camera jump, and a spotted enemy high-value target list.",
   "display_name": "PA QoL",
-  "forum": "",
+  "forum": "https://github.com/LeM0-Dev/galaxy-war-qol",
   "identifier": "com.lem0.pa-qol",
-  "signature": "",
+  "signature": " ",
   "titansOnly": true,
-  "version": "0.2.6",
+  "version": "0.2.7",
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.lem0.pa-qol/core/ns.js",
