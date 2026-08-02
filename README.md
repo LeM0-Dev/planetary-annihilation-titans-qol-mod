@@ -3,6 +3,15 @@
 Quality-of-life client mod for **Planetary Annihilation: TITANS**.
 Identifier `com.lem0.pa-qol`, tested against build 124667.
 
+## Table of contents
+
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Install (players)](#install-players)
+- [Install (development)](#install-development)
+- [Development](#development)
+- [Adding a feature](#adding-a-feature)
+
 ## Features
 
 - **Notification priority** — enable/disable any voice notification and give
@@ -21,6 +30,18 @@ Identifier `com.lem0.pa-qol`, tested against build 124667.
 
 Configure everything under **Settings → PA QOL** (works from the main menu
 and in-game). Window layout changes apply at the start of the next game.
+
+## Screenshots
+
+The **PA QOL** settings tab — windows, per-notification voice priorities,
+maintenance actions:
+
+![Settings — windows and commander/economy notification priorities](docs/img/settings1.png)
+
+![Settings — combat/special weapons/celestial priorities and maintenance](docs/img/settings2.png)
+
+<!-- TODO: in-game screenshots of the notification history and enemy target
+     windows go here (docs/img/). -->
 
 ## Install (players)
 
@@ -79,10 +100,12 @@ in PA's local storage under `com.lem0.pa-qol/*` keys and survive updates.
 ## Install (development)
 
 ```sh
-tools/install-symlink.sh     # symlinks this repo into PA's client_mods/
-# if PA does not list the mod after a restart, fall back to:
-tools/install-copy.sh
+tools/install-copy.sh        # rsyncs the runtime files into PA's client_mods/
+                             # and bumps the patch version; re-run after edits
 ```
+
+(`tools/install-symlink.sh` exists but PA's VFS does not follow symlinks —
+verified on this setup — so the copy script is the working dev loop.)
 
 Then enable **PA QoL** under Community Mods → Installed and restart PA.
 Client mods mount at boot; there is no reliable hot reload — restart after
