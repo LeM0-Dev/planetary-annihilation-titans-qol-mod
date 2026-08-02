@@ -31,6 +31,15 @@ Whether a contributed pull request is merged is at the maintainers'
 discretion; offering the contribution in good faith satisfies this
 condition.
 
+**Modifications remain part of this project.** Any modified version or
+derivative work of the Software is licensed under this same license in its
+entirety — you may not relicense it. By distributing a modification or
+offering it as a contribution, you assign its copyright to the copyright
+holder of the Software to the maximum extent permitted by law and, where
+assignment is not possible, you grant the copyright holder a perpetual,
+irrevocable, worldwide, royalty-free, sublicensable license to use, modify,
+distribute, and relicense the modification as part of the project.
+
 ## 3. Unmodified redistribution
 
 You may redistribute unmodified copies of the Software (for example,
@@ -46,11 +55,14 @@ permission from the copyright holder.
 
 ## 5. Attribution and license propagation
 
-Every copy, fork, mirror, or derivative work of the Software — modified or
-not — must include this license file unaltered (including its link to the
-Canonical Repository), credit "PA:T QoL", and link to the Canonical
-Repository in its own documentation (for example, its README or mod
-description).
+Every copy, fork, mirror, or derivative work of the Software — **modified
+or not** — must:
+
+- include this license file unaltered, including its link to the Canonical
+  Repository;
+- remain licensed under this license in full (no relicensing);
+- credit "PA:T QoL" and link to the Canonical Repository in its own
+  documentation (for example, its README or mod description).
 
 ## 6. Third-party components
 
