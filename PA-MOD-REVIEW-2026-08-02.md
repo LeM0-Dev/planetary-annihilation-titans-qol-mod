@@ -8,7 +8,7 @@ No blockers or bugs across 57 files; one Maintenance Risk (a deliberate, documen
 | Identifier | `com.lem0.pat-qol` |
 | Version | 0.4.0 (unreleased working tree, staging) |
 | Context | client |
-| Files reviewed | 57 |
+| Files reviewed | 59 |
 | Base-game files shadowed | 1 |
 | Base game | `/mnt/nvme-2-4tb/SteamLibrary/steamapps/common/Planetary Annihilation Titans/media` (`--media`) |
 | Reviewed | 2026-08-02 |
