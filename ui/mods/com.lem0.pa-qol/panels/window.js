@@ -138,10 +138,15 @@
 
         var hasLocation = !!(alert.location && alert.planet_id !== undefined && alert.planet_id !== null);
         var spec = /(.*\.json)/.exec(alert.spec_id || '');
+        // Pings are deliberate player communication: two pings are two
+        // messages (different senders, different spots) — never merge them.
+        // key null = exempt from coalescing.
+        var key;
+        if (wtName === 'ping') key = null;
+        else if (alert.custom) key = 'custom:' + (alert.name || '');
+        else key = 'wt:' + alert.watch_type + ':' + (spec ? spec[1] : '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o'));
         return {
-            key: alert.custom
-                ? 'custom:' + (alert.name || '')
-                : 'wt:' + alert.watch_type + ':' + (spec ? spec[1] : '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o')),
+            key: key,
             count: 1,
             timeText: paqolTimefmt.format(gameTime),
             text: text,
