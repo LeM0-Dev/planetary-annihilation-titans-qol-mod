@@ -126,6 +126,35 @@
                     paqol.store.set('cuemap', { cues: {} });
                     paqol.log.info('learned sound map reset.');
                 };
+
+                // ---- search ----
+                // Rows carry data-search keywords (static markup) or their
+                // bound title (notification rows); a row matches on keywords
+                // or visible text. Groups/sections hide when nothing inside
+                // matches and their own heading does not.
+                self.searchQuery = ko.observable('');
+
+                function applyFilter() {
+                    var q = String(self.searchQuery() || '').toLowerCase().replace(/^\s+|\s+$/g, '');
+                    var $pane = $('#paqol-settings-pane');
+
+                    $pane.find('[data-search]').each(function () {
+                        var $row = $(this);
+                        var hay = (($row.attr('data-search') || '') + ' ' + $row.text()).toLowerCase();
+                        $row.toggle(!q || hay.indexOf(q) !== -1);
+                    });
+
+                    $pane.find('.paqol-settings-group, .paqol-settings-section').each(function () {
+                        var $box = $(this);
+                        var heading = $box.find('.paqol-settings-heading, .paqol-settings-subheading')
+                            .first().text().toLowerCase();
+                        var headingHit = q && heading.indexOf(q) !== -1;
+                        if (headingHit) $box.find('[data-search]').show();
+                        var anyRow = $box.find('[data-search]:visible').length > 0;
+                        $box.toggle(!q || headingHit || anyRow);
+                    });
+                }
+                self.searchQuery.subscribe(_.debounce(applyFilter, 150));
             }
 
             model.paqolSettings = new PaQolSettingsModel();

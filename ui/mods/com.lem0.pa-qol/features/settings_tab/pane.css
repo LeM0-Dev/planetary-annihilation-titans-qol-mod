@@ -14,6 +14,26 @@
 
 .paqol-settings-section { margin: 12px 0 20px 0; }
 
+.paqol-settings-search { margin: 10px 0 4px 0; }
+.paqol-settings-search input {
+    width: 320px;
+    padding: 4px 8px;
+    color: #cfe0ea;
+    background: #1a242c;
+    border: 1px solid rgba(120, 160, 190, 0.45);
+    font-size: 13px;
+}
+.paqol-settings-search input:focus {
+    outline: none;
+    border-color: rgba(160, 210, 240, 0.8);
+}
+.paqol-settings-search-clear {
+    margin-left: 6px;
+    cursor: pointer;
+    color: #9db8c8;
+}
+.paqol-settings-search-clear:hover { color: #ffffff; }
+
 .paqol-settings-heading {
     font-size: 15px;
     text-transform: uppercase;

@@ -2,20 +2,28 @@
      data-bind="visible: ($root.activeSettingsGroupIndex() === 900), deferBindingsUntilVisible: true">
     <div data-bind="with: $root.paqolSettings">
 
+        <div class="paqol-settings-search">
+            <input type="text" placeholder="Search settings..."
+                   data-bind="textInput: searchQuery" />
+            <span class="paqol-settings-search-clear"
+                  data-bind="visible: searchQuery().length > 0,
+                             click: function () { searchQuery(''); }">&#10005;</span>
+        </div>
+
         <div class="paqol-settings-section">
             <div class="paqol-settings-heading"><loc>Windows</loc></div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="notification history window show hide">
                 <label><input type="checkbox" data-bind="checked: historyEnabled" /> <loc>Notification history window</loc></label>
             </div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="history length cap size rows">
                 <label><loc>History length</loc>
                     <select data-bind="options: capOptions, value: historyCap, enable: historyEnabled"></select>
                 </label>
             </div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="enemy target window show hide hvt">
                 <label><input type="checkbox" data-bind="checked: hvtEnabled" /> <loc>Enemy target window</loc></label>
             </div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="teleporter catalyst halley track watchlist engine alerts">
                 <label><input type="checkbox" data-bind="checked: hvtWidenWatchlist, enable: hvtEnabled" />
                     <loc>Also track teleporters, Catalysts and Halleys (adds engine alerts)</loc></label>
             </div>
@@ -29,7 +37,7 @@
             <div class="paqol-settings-note">
                 <loc>Higher priority wins when two voice lines compete. Disabling a notification silences its voice line only; visual alerts are unchanged.</loc>
             </div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="priority window ms milliseconds audio voice stomp">
                 <label><loc>Priority window (ms)</loc>
                     <select data-bind="options: windowOptions, value: arbiterWindowMs"></select>
                 </label>
@@ -39,7 +47,7 @@
             <div class="paqol-settings-group">
                 <div class="paqol-settings-subheading" data-bind="text: $data.title"></div>
                 <!-- ko foreach: $data.rows -->
-                <div class="paqol-settings-row paqol-notify-row">
+                <div class="paqol-settings-row paqol-notify-row" data-bind="attr: { 'data-search': $data.title }">
                     <input type="checkbox" data-bind="checked: $data.enabled" />
                     <span class="paqol-notify-title" data-bind="text: $data.title"></span>
                     <select class="paqol-notify-priority"
@@ -52,7 +60,7 @@
 
         <div class="paqol-settings-section">
             <div class="paqol-settings-heading"><loc>Maintenance</loc></div>
-            <div class="paqol-settings-row">
+            <div class="paqol-settings-row" data-search="restore defaults reset window positions geometry learned sounds maintenance">
                 <div class="btn_std" data-bind="click: restoreDefaults, click_sound: 'default'">
                     <div class="btn_label small"><loc>Restore PA QoL Defaults</loc></div>
                 </div>
