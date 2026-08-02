@@ -32,15 +32,33 @@ and in-game). Window layout changes apply at the start of the next game.
    directory, so that `modinfo.json` ends up at
    `client_mods/com.lem0.pa-qol/modinfo.json`:
 
-   | Platform | Path |
-   |---|---|
-   | Windows | `%LOCALAPPDATA%\Uber Entertainment\Planetary Annihilation\client_mods\com.lem0.pa-qol\` |
-   | Linux | `~/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/` |
-   | macOS | `~/Library/Application Support/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/` |
+   **Windows** — press `Win`+`R`, paste the line below, press Enter; Explorer
+   opens the right folder (usually
+   `C:\Users\<your name>\AppData\Local\Uber Entertainment\Planetary Annihilation`):
 
-   Create the `client_mods` folder if it does not exist. On Windows, paste
-   the `%LOCALAPPDATA%\...` path straight into the Explorer address bar.
-   Use a real folder — PA does not follow symlinks.
+   ```
+   %LOCALAPPDATA%\Uber Entertainment\Planetary Annihilation
+   ```
+
+   Inside it, open (or create) `client_mods`, create a folder named
+   `com.lem0.pa-qol` in there, and extract the ZIP into that folder.
+   (The `AppData` folder is hidden by default — the `Win`+`R` shortcut
+   bypasses that.)
+
+   **Linux**:
+
+   ```
+   ~/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/
+   ```
+
+   **macOS**:
+
+   ```
+   ~/Library/Application Support/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/
+   ```
+
+   Create the `client_mods` folder if it does not exist. Use a real folder —
+   PA does not follow symlinks.
 
 3. Start PA:TITANS, open **Community Mods → Installed**, enable **PA QoL**
    (click *reload filesystem mods* if it is not listed), then restart the
