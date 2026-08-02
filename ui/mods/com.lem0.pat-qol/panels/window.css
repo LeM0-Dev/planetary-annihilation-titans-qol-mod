@@ -13,7 +13,7 @@ html, body {
 .paqol-win {
     position: absolute;
     left: 0; top: 0; right: 0; bottom: 0;
-    background: rgba(14, 18, 22, 0.92);
+    background: rgb(14, 18, 22); /* solid: translucency made rows unreadable over bright terrain */
     border: 1px solid rgba(120, 160, 190, 0.45);
     color: #cfe0ea;
     font-family: sans-serif;

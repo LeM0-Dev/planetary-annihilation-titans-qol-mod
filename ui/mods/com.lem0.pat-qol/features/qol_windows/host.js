@@ -213,8 +213,8 @@
             // The units window needs alliances and army INDICES (worldview
             // API is index-based); player_data has neither. Forward a slim
             // roster derived from model.players() whenever it changes.
-            function sendRoster() {
-                if (typeof model.players !== 'function') return;
+            function buildRosterPayload() {
+                if (typeof model.players !== 'function') return null;
                 var players = model.players() || [];
                 var ownId = (typeof model.armyId === 'function') ? model.armyId() : undefined;
                 var roster = [];
@@ -227,16 +227,30 @@
                         name: p.name,
                         color: p.color,
                         defeated: p.defeated === true,
-                        state: (p.id === ownId) ? 'own'
-                            : (p.stateToPlayer === 'allied' ? 'allied' : 'hostile')
+                        // stateToPlayer values seen live: 'self', 'allied',
+                        // 'allied_eco', 'hostile'
+                        state: (p.id === ownId || p.stateToPlayer === 'self') ? 'own'
+                            : (String(p.stateToPlayer || '').indexOf('allied') === 0 ? 'allied' : 'hostile')
                     });
                 }
-                messageChild('paqol_units', 'paqol_roster', { roster: roster });
+                var planetCount = 0;
+                try {
+                    if (typeof model.planetListState === 'function')
+                        planetCount = (model.planetListState().planets || []).length;
+                } catch (e) { /* worldview scan will just skip planets */ }
+                return { roster: roster, planetCount: planetCount };
+            }
+            function sendRoster() {
+                var payload = buildRosterPayload();
+                if (payload) messageChild('paqol_units', 'paqol_roster', payload);
             }
             if (model.players && typeof model.players.subscribe === 'function' &&
                 prefs.unitsEnabled !== false) {
                 model.players.subscribe(sendRoster);
                 _.delay(sendRoster, 3000); // panel view needs a moment to register
+                // pull path so a (re)loaded window can ask instead of waiting
+                // for the next roster change
+                paqol.bus.expose('paqolGetRoster', buildRosterPayload);
             }
 
             // ------------------------------------- derived event forwarding

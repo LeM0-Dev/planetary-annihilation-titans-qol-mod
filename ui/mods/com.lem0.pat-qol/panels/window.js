@@ -194,7 +194,9 @@
             }
             base = row.template ? row.template.replace('__name__', name) : name;
         }
-        return (row.count > 1) ? base + ' ×' + row.count : base;
+        if (row.count > 1) base += ' ×' + row.count;
+        if (row.idleTag) base += ' [IDLE]';
+        return base;
     };
 
     // right-click a row -> remove just that entry
@@ -400,9 +402,10 @@
     // Commanders are found by polling the worldview API for own/allied
     // armies — the same call the base game makes for the player's own army.
     var roster = [];            // [{id,index,name,color,defeated,state}]
+    var planetCount = 0;        // worldview scans are per-planet
     var combats = {};           // id -> {group, location, planet_id, at}
-    var idleFactories = {};     // alert id -> row source
-    var commanders = [];        // [{group, army_id, specKey, planet, location}]
+    var idleFactories = {};     // alert id (= unit id) -> row source
+    var commanders = [];        // [{group, army_id, specKey, planet, location, idle}]
 
     function rosterGroup(armyId) {
         for (var i = 0; i < roster.length; i++)
@@ -413,6 +416,7 @@
     handlers.paqol_roster = function (payload) {
         if (!payload || !_.isArray(payload.roster)) return;
         roster = payload.roster;
+        if (typeof payload.planetCount === 'number') planetCount = payload.planetCount;
         rev(rev() + 1);
     };
 
@@ -477,55 +481,117 @@
         }
     }
 
-    // Commander poll: worldview is army-INDEX based; own+allied indices come
-    // from the roster. Field availability of getUnitState results varies by
-    // build, so location is treated as optional.
+    // Commander poll. Verified live against the engine:
+    //  - getArmyUnits is army-INDEX based and must be queried PER PLANET
+    //    (planetIndex -1 returns nothing);
+    //  - the result is keyed by (possibly tagged) spec id — scanning keys
+    //    finds own commanders even in GW coop, where the roster reports the
+    //    own commander spec as null;
+    //  - getUnitState returns {army, planet, pos:[x,y,z], orders, build_target}
+    //    → pos is the jump location, empty orders + no build_target = IDLE.
+    var cmdrIds = {};   // unit id -> {specKey} (accumulated; state poll prunes)
     function pollCommanders() {
         if (role !== 'paqol_units') return;
         if (!window.api || typeof api.getWorldView !== 'function') return;
         var wv;
         try { wv = api.getWorldView(0); } catch (e) { return; }
-        if (!wv || typeof wv.getArmyUnits !== 'function') return;
+        if (!wv || typeof wv.getArmyUnits !== 'function' || typeof wv.getUnitState !== 'function') return;
 
         var mine = _.filter(roster, function (r) {
             return (r.state === 'own' || r.state === 'allied') && !r.defeated;
         });
-        var next = [];
-        var pending = mine.length;
-        if (!pending) return;
+        if (!mine.length || planetCount < 1) return;
 
+        var scans = 0;
         _.forEach(mine, function (r) {
-            wv.getArmyUnits(r.index, -1).then(function (bySpec) {
-                var ids = [];
-                var specKey = null;
-                _.forEach(bySpec || {}, function (unitIds, spec) {
-                    if (/\/commanders\/|bot_support_commander/.test(spec) && _.isArray(unitIds) && unitIds.length) {
-                        ids = ids.concat(unitIds);
-                        specKey = canonicalSpec(spec);
-                    }
-                });
-                var finish = function (states) {
-                    _.forEach(ids, function (unitId, idx) {
-                        var st = (states && states[idx]) || {};
-                        next.push({
-                            group: r.state,
-                            army_id: r.id,
-                            specKey: specKey,
-                            planet: (typeof st.planet === 'number') ? st.planet : null,
-                            location: (st.location && typeof st.location.x === 'number') ? st.location : null
-                        });
+            for (var p = 0; p < planetCount; p++) {
+                scans++;
+                wv.getArmyUnits(r.index, p).then(function (bySpec) {
+                    _.forEach(bySpec || {}, function (unitIds, spec) {
+                        if (!/\/commanders\/|bot_support_commander/.test(spec)) return;
+                        if (!_.isArray(unitIds)) return;
+                        for (var u = 0; u < unitIds.length; u++)
+                            cmdrIds[unitIds[u]] = { specKey: canonicalSpec(spec) };
                     });
-                    if (--pending === 0) { commanders = next; rev(rev() + 1); }
-                };
-                if (ids.length && typeof wv.getUnitState === 'function')
-                    wv.getUnitState(ids).then(finish, function () { finish(null); });
-                else finish(null);
-            }, function () {
-                if (--pending === 0) { commanders = next; rev(rev() + 1); }
-            });
+                    if (--scans === 0) refreshCommanderState(wv);
+                }, function () {
+                    if (--scans === 0) refreshCommanderState(wv);
+                });
+            }
         });
     }
-    if (role === 'paqol_units') setInterval(pollCommanders, 5000);
+
+    function refreshCommanderState(wv) {
+        var ids = _.map(_.keys(cmdrIds), Number);
+        if (!ids.length) { commanders = []; rev(rev() + 1); return; }
+        wv.getUnitState(ids).then(function (states) {
+            var next = [];
+            var alive = {};
+            _.forEach(states || [], function (st, i) {
+                if (!st || typeof st.army !== 'number') return;
+                var r = roster[st.army];
+                if (!r || r.state === 'hostile') return;
+                var id = ids[i];
+                alive[id] = true;
+                next.push({
+                    group: r.state,
+                    army_id: r.id,
+                    specKey: (cmdrIds[id] && cmdrIds[id].specKey) ||
+                        canonicalSpec(st.unit_spec),
+                    planet: (typeof st.planet === 'number') ? st.planet : null,
+                    location: (_.isArray(st.pos) && st.pos.length === 3)
+                        ? { x: st.pos[0], y: st.pos[1], z: st.pos[2] } : null,
+                    idle: (!st.orders || st.orders.length === 0) && !st.build_target
+                });
+            });
+            // prune dead commanders
+            _.forEach(_.keys(cmdrIds), function (k) { if (!alive[k]) delete cmdrIds[k]; });
+            commanders = next;
+            rev(rev() + 1);
+        }, function () { /* keep the previous snapshot */ });
+    }
+
+    // Idle-factory refresh rides the same poll: a factory that was given
+    // work shows orders/build_target (or vanishes when dead).
+    function pollIdleFactories() {
+        if (role !== 'paqol_units') return;
+        var ids = _.map(_.keys(idleFactories), Number);
+        if (!ids.length) return;
+        if (!window.api || typeof api.getWorldView !== 'function') return;
+        var wv;
+        try { wv = api.getWorldView(0); } catch (e) { return; }
+        if (!wv || typeof wv.getUnitState !== 'function') return;
+        wv.getUnitState(ids).then(function (states) {
+            var changed = false;
+            var seen = {};
+            _.forEach(states || [], function (st, i) {
+                if (!st) return;
+                seen[ids[i]] = true;
+                if ((st.orders && st.orders.length) || st.build_target) {
+                    delete idleFactories[ids[i]];
+                    changed = true;
+                }
+            });
+            _.forEach(ids, function (id) {
+                if (!seen[id]) { delete idleFactories[id]; changed = true; } // dead
+            });
+            if (changed) rev(rev() + 1);
+        });
+    }
+
+    if (role === 'paqol_units') {
+        setInterval(pollCommanders, 5000);
+        setInterval(pollIdleFactories, 3000);
+        // pull the roster at boot (the host pushes on change, which a freshly
+        // (re)loaded window would otherwise wait on)
+        try {
+            api.Panel.query(api.Panel.parentId, 'panel.invoke', ['paqolGetRoster'])
+                .then(function (payload) {
+                    if (payload) handlers.paqol_roster(payload);
+                    pollCommanders();
+                });
+        } catch (e) { /* push path still applies */ }
+    }
 
     function unitsRowsFor(group) {
         var out = [];
@@ -534,8 +600,9 @@
             out.push({
                 kind: 'commander', isCommander: true, template: '',
                 fallbackName: 'Commander', specKey: c.specKey, army_id: c.army_id,
+                idleTag: c.idle === true,
                 count: 1, seenText: '',
-                location: c.location, planet_id: null, planetIndex: c.planet,
+                location: c.location, planet_id: c.planet, planetIndex: c.planet,
                 clickable: !!(c.location || c.planet !== null)
             });
         });

@@ -44,10 +44,13 @@ profit — including selling it, bundling it with paid products or services,
 or placing it behind a paywall — is **not permitted** without prior written
 permission from the copyright holder.
 
-## 5. Attribution
+## 5. Attribution and license propagation
 
-Public distributions and derivative works must credit "PA:T QoL" and link
-to the Canonical Repository.
+Every copy, fork, mirror, or derivative work of the Software — modified or
+not — must include this license file unaltered (including its link to the
+Canonical Repository), credit "PA:T QoL", and link to the Canonical
+Repository in its own documentation (for example, its README or mod
+description).
 
 ## 6. Third-party components
 
