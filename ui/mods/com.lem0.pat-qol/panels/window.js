@@ -75,6 +75,10 @@
                 specCache[targetKey].display = paqol.loc(d.display_name);
                 dirty = true;
             }
+            if (depth === 0 && typeof d.sicon_override === 'string' && d.sicon_override) {
+                specCache[targetKey].siconOverride = d.sicon_override;
+                dirty = true;
+            }
             if (typeof d.si_name === 'string' && d.si_name) {
                 specCache[targetKey].si = d.si_name;
                 dirty = true;
@@ -100,6 +104,11 @@
         return entry.display || null;
     }
 
+    // Strategic icon name resolution mirrors the base game (live_game.js
+    // siconFor): sicon_override when the spec sets one, otherwise the spec
+    // FILENAME stem (icon_si_bot_factory.png). si_name (found up the
+    // base_spec chain, e.g. commanders) beats the stem when present.
+    // Missing images hide themselves via the img error handler.
     function siIconFor(row) {
         specRev();
         if (!row || !row.specKey) return null;
@@ -107,10 +116,12 @@
         if (entry === undefined) {
             specCache[row.specKey] = { si: null, display: null };
             fetchSi(row.specKey, row.specKey, 0);
-            return null;
+            entry = specCache[row.specKey];
         }
-        return entry.si
-            ? 'coui://ui/main/atlas/icon_atlas/img/strategic_icons/icon_si_' + entry.si + '.png'
+        var m = /([^\/]+)\.json$/.exec(row.specKey);
+        var si = entry.siconOverride || entry.si || (m && m[1]);
+        return si
+            ? 'coui://ui/main/atlas/icon_atlas/img/strategic_icons/icon_si_' + si + '.png'
             : null;
     }
 

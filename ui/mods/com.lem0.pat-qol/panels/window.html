@@ -27,11 +27,11 @@
                                 click: function () { $root.jump($data); },
                                 event: { contextmenu: function () { return $root.dismiss($data); } }">
                     <!-- ko if: $root.buildIcon($data) -->
-                    <img class="paqol-row-icon" onerror="this.style.display='none'"
+                    <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.buildIcon($data) }" />
                     <!-- /ko -->
                     <!-- ko if: $root.siIcon($data) -->
-                    <img class="paqol-row-sicon" onerror="this.style.display='none'"
+                    <img class="paqol-row-sicon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.siIcon($data) }" />
                     <!-- /ko -->
                     <span class="paqol-row-text"
@@ -54,11 +54,11 @@
                                 click: function () { $root.jump($data); },
                                 event: { contextmenu: function () { return $root.dismiss($data); } }">
                     <!-- ko if: $root.buildIcon($data) -->
-                    <img class="paqol-row-icon" onerror="this.style.display='none'"
+                    <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.buildIcon($data) }" />
                     <!-- /ko -->
                     <!-- ko if: $root.siIcon($data) -->
-                    <img class="paqol-row-sicon" onerror="this.style.display='none'"
+                    <img class="paqol-row-sicon" onerror="this.style.display='none'" onload="this.style.display=''"
                          data-bind="attr: { src: $root.siIcon($data) }" />
                     <!-- /ko -->
                     <span class="paqol-row-text"
