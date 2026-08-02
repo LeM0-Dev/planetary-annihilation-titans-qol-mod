@@ -13,7 +13,7 @@
         <div class="paqol-win-title" id="paqol-win-title">
             <span class="paqol-win-title-text" data-bind="text: title"></span>
             <div class="paqol-win-btn" id="paqol-win-minimize"
-                 data-bind="text: minimized() ? '+' : '−'"></div>
+                 data-bind="text: role === 'paqol_gwinfo' ? '&#10005;' : (minimized() ? '+' : '−')"></div>
         </div>
 
         <div class="paqol-win-body" data-bind="visible: !minimized()">
@@ -69,29 +69,10 @@
             </div>
             <!-- /ko -->
 
-            <!-- ko if: role === 'paqol_units' -->
+            <!-- ko if: role === 'paqol_units' || role === 'paqol_structures' || role === 'paqol_allies' || role === 'paqol_gwinfo' -->
             <div class="paqol-list">
-                <div class="paqol-group-heading">OWN</div>
-                <div class="paqol-empty" data-bind="visible: ownRows().length === 0">Nothing to show.</div>
-                <!-- ko foreach: ownRows -->
-                <div class="paqol-row"
-                     data-bind="css: { 'paqol-clickable': $data.clickable },
-                                click: function () { $root.jump($data); },
-                                event: { contextmenu: function () { return $root.dismiss($data); } }">
-                    <!-- ko if: $root.buildIcon($data) -->
-                    <img class="paqol-row-icon" onerror="this.style.display='none'" onload="this.style.display=''"
-                         data-bind="attr: { src: $root.buildIcon($data) }" />
-                    <!-- /ko -->
-                    <img class="paqol-row-sicon" data-bind="paqolSiTint: $root.rowColor($data), attr: { src: $root.siIcon($data) }, visible: !!$root.siIcon($data)"
-                         onerror="this.style.display='none'" onload="this.style.display=''" />
-                    <span class="paqol-row-text"
-                          data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
-                    <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
-                </div>
-                <!-- /ko -->
-                <div class="paqol-group-heading">ALLIED</div>
-                <div class="paqol-empty" data-bind="visible: alliedRows().length === 0">Nothing to show.</div>
-                <!-- ko foreach: alliedRows -->
+                <div class="paqol-empty" data-bind="visible: rows().length === 0">Nothing to show.</div>
+                <!-- ko foreach: rows -->
                 <div class="paqol-row"
                      data-bind="css: { 'paqol-clickable': $data.clickable },
                                 click: function () { $root.jump($data); },
@@ -111,7 +92,7 @@
             <!-- /ko -->
 
         </div>
-        <div class="paqol-win-grip" id="paqol-win-grip" data-bind="visible: !minimized()"></div>
+        <div class="paqol-win-grip" id="paqol-win-grip" data-bind="visible: !minimized() && role !== 'paqol_gwinfo'"></div>
     </div>
 
     <script type="text/javascript" src="coui://ui/main/shared/js/build.js"></script>

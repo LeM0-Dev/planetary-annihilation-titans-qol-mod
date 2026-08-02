@@ -70,10 +70,45 @@
                     self.groups.push({ title: paqol.loc(group.title), rows: rows });
                 });
 
+                var initialScale = typeof prefs.windowScale === 'number' ? prefs.windowScale : 100;
+                self.windowScale = ko.observable(String(initialScale));
+                // Free-typed: NEVER snap while the user is typing ("5" on the
+                // way to "50" must survive). Out-of-range input shows an
+                // error instead; preview and storage track the LAST VALID
+                // value only.
+                self.windowScaleError = ko.pureComputed(function () {
+                    var raw = String(self.windowScale()).trim();
+                    var n = Number(raw);
+                    return !(raw !== '' && isFinite(n) && n >= 50 && n <= 300);
+                });
+                self.windowScaleApplied = ko.observable(initialScale);
+                // The PREVIEW renders the clamped best guess ("5" previews
+                // as 50) so the user sees something sensible mid-typing;
+                // only the APPLIED (saved) value insists on validity.
+                self.windowScalePreview = ko.pureComputed(function () {
+                    var raw = String(self.windowScale()).trim();
+                    var n = Number(raw);
+                    if (raw === '' || !isFinite(n)) return self.windowScaleApplied();
+                    return Math.max(50, Math.min(300, Math.round(n)));
+                });
+                // 100% maps to raw zoom 0.9 (window.js SCALE_BASE) — the
+                // preview must render with the same effective zoom
+                self.windowScaleZoom = ko.pureComputed(function () {
+                    return self.windowScalePreview() * 0.9 / 100;
+                });
+                self.windowScale.subscribe(function () {
+                    if (!self.windowScaleError())
+                        self.windowScaleApplied(Math.round(Number(self.windowScale())));
+                });
+                self.paqolScaleStep = function (delta) {
+                    self.windowScale(String(Math.max(50, Math.min(300,
+                        self.windowScaleApplied() + delta))));
+                };
                 self.historyEnabled = ko.observable(prefs.historyEnabled !== false);
                 self.historyCap = ko.observable(typeof prefs.historyCap === 'number' ? prefs.historyCap : 300);
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
                 self.unitsEnabled = ko.observable(prefs.unitsEnabled !== false);
+                self.nukesEnabled = ko.observable(prefs.nukesEnabled !== false);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
                 self.audioDecayMs = ko.observable(
@@ -106,11 +141,13 @@
                     for (var t = 0; t < self.targetRows.length; t++)
                         hvtTargets[self.targetRows[t].key] = self.targetRows[t].enabled() === true;
                     paqol.store.set('prefs', {
+                        windowScale: self.windowScaleApplied(),
                         historyEnabled: self.historyEnabled() === true,
                         historyCap: Number(self.historyCap()),
                         hvtEnabled: self.hvtEnabled() === true,
                         hvtTargets: hvtTargets,
                         unitsEnabled: self.unitsEnabled() === true,
+                        nukesEnabled: self.nukesEnabled() === true,
                         arbiterWindowMs: Number(self.arbiterWindowMs()),
                         audioDecayMs: Number(self.audioDecayMs())
                     });
@@ -120,8 +157,8 @@
                     row.enabled.subscribe(save);
                     row.priority.subscribe(save);
                 });
-                _.forEach([self.historyEnabled, self.historyCap, self.hvtEnabled,
-                    self.unitsEnabled, self.arbiterWindowMs, self.audioDecayMs],
+                _.forEach([self.windowScaleApplied, self.historyEnabled, self.historyCap, self.hvtEnabled,
+                    self.unitsEnabled, self.nukesEnabled, self.arbiterWindowMs, self.audioDecayMs],
                     function (obs) { obs.subscribe(save); });
                 _.forEach(self.targetRows, function (row) { row.enabled.subscribe(save); });
 
@@ -130,10 +167,12 @@
                         row.enabled(defaults[row.key].enabled);
                         row.priority(defaults[row.key].priority);
                     });
+                    self.windowScale(100);
                     self.historyEnabled(true);
                     self.historyCap(300);
                     self.hvtEnabled(true);
                     self.unitsEnabled(true);
+                    self.nukesEnabled(true);
                     _.forEach(self.targetRows, function (row) { row.enabled(true); });
                     self.arbiterWindowMs(3000);
                     self.audioDecayMs(3000);

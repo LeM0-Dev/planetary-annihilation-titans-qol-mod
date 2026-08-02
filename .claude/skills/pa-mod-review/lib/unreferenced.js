@@ -236,6 +236,39 @@ function isReferenced(relPath, refs) {
   return false;
 }
 
+// Paths the mod itself marks as dev-only via .gitattributes export-ignore:
+// stripped from any release archive, so their being unreferenced says nothing.
+// Supports the three pattern shapes that actually occur in mod repos —
+// "dir/**", "*.ext" and exact names. Anything else is ignored (under-reporting
+// is the correct failure mode).
+function exportIgnoreMatcher(modRoot) {
+  let text;
+  try {
+    text = fs.readFileSync(path.join(modRoot, ".gitattributes"), "utf8");
+  } catch {
+    return () => false;
+  }
+  const tests = [];
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#") || !/\bexport-ignore\b/.test(t)) {
+      continue;
+    }
+    const pattern = t.split(/\s+/)[0];
+    if (pattern.endsWith("/**")) {
+      const dir = pattern.slice(0, -3).replace(/^\//, "");
+      tests.push((p) => p === dir || p.startsWith(dir + "/"));
+    } else if (pattern.startsWith("*.")) {
+      const suffix = pattern.slice(1).toLowerCase();
+      tests.push((p) => p.toLowerCase().endsWith(suffix));
+    } else {
+      const exact = pattern.replace(/^\//, "");
+      tests.push((p) => p === exact || p.split("/").pop() === exact);
+    }
+  }
+  return (p) => tests.some((test) => test(p));
+}
+
 function isExcluded(relPath) {
   if (isNotContent(relPath)) {
     return "documentation or tooling, not shipped content";
@@ -296,6 +329,7 @@ function checkUnreferenced(files, ctx) {
   // importer, never named by anything.
   const shipped = new Set(files.map((f) => rel(root, f).toLowerCase()));
   const baseCache = new Map();
+  const devOnly = exportIgnoreMatcher(root);
 
   const orphans = [];
 
@@ -303,7 +337,7 @@ function checkUnreferenced(files, ctx) {
     const relPath = rel(root, abs);
     const lower = relPath.toLowerCase();
 
-    if (isExcluded(relPath)) {
+    if (isExcluded(relPath) || devOnly(relPath)) {
       continue;
     }
 

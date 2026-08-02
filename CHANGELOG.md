@@ -1,5 +1,132 @@
 # Changelog
 
+## 0.5.0 — 2026-08-02
+
+### Armory info
+
+Locked commanders in the Armory now carry a **?** badge next to the Locked
+label when the community knows how they are obtained — hover it for the
+details:
+
+- **Calyx, Gamma, Ajax** — awarded for playing in community tournaments.
+- **Kapowaz** — awarded for consistently participating in PTE / LABS test
+  builds.
+- **Beast** — finishing #1 at the end of a ranked season; **Beast King** —
+  that, plus beating the current holder in a Bo7/Bo9 tournament.
+- **Alpha, Delta, Theta, Progenitor** — Kickstarter backer rewards, no
+  longer obtainable.
+- Personal Kickstarter-backer commanders are labelled with their backer's
+  name, no longer obtainable.
+
+Locked commanders with no known acquisition path read "Obtainability
+unknown".
+
+Commanders you own because you bought them read **Purchased** instead of
+Owned (free and granted ones keep Owned).
+
+### Armory cart quick-add
+
+Every for-sale commander tile carries a green **Add to cart** button next
+to its price tag that adds it to the cart in place — no tab switch, the
+cart pill's counter ticks up, and the button flips to a red **Remove from
+cart** while the commander sits in the cart.
+
+The commander footer is reworked: a **Buy All Available ($total)** button
+drops every purchasable commander you don't own into the cart at once,
+flipping to a red **Remove All (n)** that empties the cart while anything
+is in it, and a **Checkout** button appears beside it taking you to the
+cart. The stock Add To Cart button and the "Item is already in cart."
+notice are gone — the per-tile buttons replace both.
+
+### Favorite commanders
+
+Every commander tile carries a **star** (top right): click to favorite, and
+favorites sort to the top of the list — on top of the game's built-in
+default-commander preference. Stored per-user; survives updates and catalog
+refreshes.
+
+The default-commander flow moves onto the tiles too: the stock star overlay
+and the footer Set-As-Default button are replaced by a blue **DEFAULT**
+pill on the current default (click it to clear) and a **Set default**
+button on every other usable commander, both in the tile's price row. The
+current default always sorts first, above favorites.
+
+Favorites carry into **Galactic War setup**: the commander list there is
+sorted favorites-first (both the stock prev/next carousel and the
+GW-AI-Overhaul picker walk the same list), and with the Overhaul's picker
+grid the favorite tiles show a gold star. The stock carousel gets a toggle
+star between its arrows for the commander on display.
+
+Same in the **game lobby** (skirmish and multiplayer): the commander picker
+sorts default → favorites → rest, and every tile carries a toggle star —
+all three screens share one favorites list.
+
+### Badges info
+
+The Badges tab now shows **Obtained** and **Not obtained** sections; the
+missing badges render greyed out with a tooltip explaining how each was
+granted (all shipped badges are legacy-era: alpha/beta participation,
+Kickstarter tiers, Uber VIP, Founding Commander).
+
+### Windows
+
+- New **Text & icon size (%)** setting (Windows section) scales the content
+  of all three in-game windows — type any value from 50 to 300 or nudge it
+  with the arrows; changes apply to running windows within a couple of
+  seconds, mid-game included. A live preview beside the input shows exactly
+  how window rows will look at the chosen size.
+
+### Own & Allied — now three windows
+
+The single OWN/ALLIED window is split into **Own Units** (commander with
+[IDLE] tag, stuck groups, idle fabbers, units in combat), **Own
+Structures** (idle factories, nuke & anti-nuke status) and **Allies**
+(allied commanders and combat) — each independently movable, resizable and
+minimizable; one settings toggle covers all three.
+
+### Own & Allied additions
+
+- Clicking a row now also **selects** what it points at: your commander,
+  an idle factory, a planet's idle-fabber group, or a stuck group — so
+  re-tasking is one order away.
+- **Idle fabricators** are detected and shown grouped per planet
+  ("Idle fabbers — <planet> ×N"); rows clear when the fabbers get work.
+- Idle commanders are excluded from the fabber rows — the commander row's
+  [IDLE] tag already covers them.
+
+### Galactic War map travel & intel
+
+Node-to-node travel on the GW map moves 3× faster — long hops no longer
+take several seconds. Every reachable, unconquered system shows an intel
+label under its star: planet count, threat (the AI's economy multiplier),
+and how many enemy and allied commanders await.
+
+While fighting a GW battle, the ESC menu gains a **Game Info** entry — a
+small window with the same intel for the system you are in: planets,
+threat, enemy roster, allies, and active modifiers (sudden death, bounty,
+eradication, AI buffs).
+
+### Nuke & anti-nuke launcher status
+
+Your nuclear missile launchers appear under OWN with live status:
+**Building n%** (the launcher itself), **Preparing** (missile in
+production), or a green **READY**. Anti-nuke launchers show their missile stock —
+**n/3** — and turn green while at least one interceptor is stored. Counts
+come from the engine's ammo alerts (the missile itself exposes no build
+percentage). Clicking a Preparing/READY row selects the launcher without
+moving the camera — double-click to jump there too (Building rows jump on
+single click). Toggleable in settings (on by default).
+
+### Stuck-unit detection
+
+The pathfinder itself cannot be fixed by a mod, but stuck units can be
+DETECTED: a unit holding a move/patrol order whose position has not changed
+for ~16 s appears under OWN in the Own & Allied window as
+"<Unit> stuck ×N" — click to jump there with the units selected, right-click to
+dismiss that group until those units move again. Ground units only (air
+hover-jitter false-positives are excluded by design); capped at 600 tracked
+units per cycle; paused while the window is minimized.
+
 ## 0.4.2 — 2026-08-02
 
 - Added the mod icon (shown in the Community Mods manager).

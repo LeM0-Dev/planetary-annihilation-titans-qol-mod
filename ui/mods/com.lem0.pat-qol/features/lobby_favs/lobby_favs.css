@@ -1,0 +1,23 @@
+/* PA:T QoL — favorite toggle stars in the lobby commander picker */
+#commander-picker .div-commander-picker-item { position: relative; }
+
+.paqol-lobby-fav-star {
+    position: absolute;
+    top: 0px;
+    right: 3px;
+    font-size: 18px;
+    line-height: 20px;
+    /* unset: hollow with a yellow outline; set: solid gold */
+    color: rgba(255, 215, 0, 0.12);
+    -webkit-text-stroke: 1px #ffd700;
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.paqol-lobby-fav-star:hover {
+    color: rgba(255, 215, 0, 0.55);
+}
+.paqol-lobby-fav-star.paqol-fav-on {
+    color: #ffd700;
+}

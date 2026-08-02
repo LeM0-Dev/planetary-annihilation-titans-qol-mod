@@ -13,6 +13,41 @@
         <div class="paqol-settings-section">
             <div class="paqol-settings-heading"><loc>Windows</loc></div>
 
+            <div class="paqol-settings-row paqol-scale-row" data-search="window text size zoom scale icons font preview">
+                <label><loc>Text &amp; icon size (%)</loc>
+                    <span class="paqol-stepper">
+                        <!-- type=text, NOT number: Coherent's Chromium mishandles
+                             number inputs (textInput doesn't fire on typing and
+                             min/max sanitization corrupts the value); validation
+                             is ours anyway -->
+                        <input type="text" maxlength="3"
+                               data-bind="textInput: windowScale, css: { 'paqol-input-error': windowScaleError }" />
+                        <span class="paqol-stepper-btns">
+                            <span class="paqol-stepper-btn" data-bind="click: function () { paqolScaleStep(5); }, clickBubble: false">&#9650;</span>
+                            <span class="paqol-stepper-btn" data-bind="click: function () { paqolScaleStep(-5); }, clickBubble: false">&#9660;</span>
+                        </span>
+                    </span>
+                    <span class="paqol-scale-error" data-bind="visible: windowScaleError"><loc>Only 50&#8202;&#8211;&#8202;300 supported</loc></span>
+                </label>
+                <!-- live preview: a fake window snippet rendered with the same
+                     CSS zoom the real windows apply; width compensates so the
+                     box stays put while its content scales -->
+                <div class="paqol-scale-preview"
+                     data-bind="style: { zoom: String(windowScaleZoom()), width: (330 / windowScaleZoom()) + 'px' }">
+                    <div class="paqol-scale-preview-title">Notifications</div>
+                    <div class="paqol-scale-preview-row">
+                        <img src="coui://ui/main/atlas/icon_atlas/img/strategic_icons/icon_si_commander.png" />
+                        <span class="t">Enemy Commander under attack</span>
+                        <span class="ts">12:34</span>
+                    </div>
+                    <div class="paqol-scale-preview-row">
+                        <img src="coui://ui/main/atlas/icon_atlas/img/strategic_icons/icon_si_nuke_launcher.png" />
+                        <span class="t">Nuclear launch detected</span>
+                        <span class="ts">11:58</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="paqol-settings-group">
                 <div class="paqol-settings-subheading"><loc>Notification history</loc></div>
                 <div class="paqol-settings-row" data-search="notification history window show hide enable">
@@ -43,14 +78,17 @@
             </div>
 
             <div class="paqol-settings-group">
-                <div class="paqol-settings-subheading"><loc>Own &amp; allied window</loc></div>
-                <div class="paqol-settings-row" data-search="own allied units window commander idle factory combat enable">
-                    <label><input type="checkbox" data-bind="checked: unitsEnabled" /> <loc>Enable (commanders, units in combat, idle factories)</loc></label>
+                <div class="paqol-settings-subheading"><loc>Own &amp; allied windows</loc></div>
+                <div class="paqol-settings-row" data-search="own allied units structures window commander idle factory combat enable">
+                    <label><input type="checkbox" data-bind="checked: unitsEnabled" /> <loc>Enable the Own Units, Own Structures and Allies windows</loc></label>
+                </div>
+                <div class="paqol-settings-row" data-search="nuke anti nuke launcher status ready preparing missile ammo">
+                    <label><input type="checkbox" data-bind="checked: nukesEnabled, enable: unitsEnabled" /> <loc>Nuke &amp; anti-nuke launcher status rows</loc></label>
                 </div>
             </div>
 
             <div class="paqol-settings-note">
-                <loc>Window changes apply at the start of the next game.</loc>
+                <loc>Enabling/disabling windows applies at the start of the next game. Text &amp; icon size applies to running windows within a couple of seconds.</loc>
             </div>
         </div>
 

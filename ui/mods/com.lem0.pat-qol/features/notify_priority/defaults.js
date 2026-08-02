@@ -140,15 +140,17 @@
         });
 
         paqol.store.define('prefs', {
-            version: 5,
+            version: 7,
             defaults: {
+                windowScale: 100,
                 historyEnabled: true,
                 historyCap: 300,
                 hvtEnabled: true,
                 hvtTargets: window.paqolNotifyDefaults.buildHvtTargets(),
                 unitsEnabled: true,
                 arbiterWindowMs: 3000,
-                audioDecayMs: 3000
+                audioDecayMs: 3000,
+                nukesEnabled: true
             },
             migrate: function (fromVersion, data) {
                 // v1 had a single hvtWidenWatchlist toggle covering the three
@@ -184,6 +186,18 @@
                     data.unitsEnabled = true;
                     fromVersion = 5;
                 }
+                // v6 adds the window text/icon scale.
+                if (fromVersion === 5) {
+                    data = data || {};
+                    data.windowScale = 100;
+                    fromVersion = 6;
+                }
+                // v7 adds the nuke/anti-nuke launcher status rows.
+                if (fromVersion === 6) {
+                    data = data || {};
+                    data.nukesEnabled = true;
+                    fromVersion = 7;
+                }
                 return { version: fromVersion, data: data };
             },
             validate: function (d) {
@@ -191,11 +205,13 @@
                 for (var i = 0; i < HVT_TARGETS.length; i++)
                     targetShape[HVT_TARGETS[i][0]] = paqolSchema.bool;
                 return paqolSchema.check(d, paqolSchema.object({
+                    windowScale: paqolSchema.intRange(50, 300),
                     historyEnabled: paqolSchema.bool,
                     historyCap: paqolSchema.intRange(50, 2000),
                     hvtEnabled: paqolSchema.bool,
                     hvtTargets: paqolSchema.object(targetShape),
                     unitsEnabled: paqolSchema.bool,
+                    nukesEnabled: paqolSchema.bool,
                     arbiterWindowMs: paqolSchema.intRange(500, 15000),
                     audioDecayMs: paqolSchema.intRange(500, 60000)
                 }));

@@ -1,0 +1,68 @@
+/* PA:T QoL — armory acquisition badge + tooltip */
+/* .lbl_price is display:block, so the badge overlays the pill's right edge
+   instead of wrapping below it. */
+#commander-list .div_price { position: relative; }
+
+/* room for the badge so it does not cover the label text */
+#commander-list .lbl_price.lbl_locked { padding-right: 26px; }
+
+.paqol-acq-badge {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    margin-top: -8px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 8px;
+    background: rgba(14, 18, 22, 0.55);
+    border: 1px solid rgba(207, 234, 255, 0.8);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: help;
+}
+.paqol-acq-badge:hover {
+    background: rgba(0, 179, 255, 0.55);
+    color: #ffffff;
+}
+
+#paqol-acq-tip {
+    position: fixed;
+    z-index: 10000;
+    max-width: 320px;
+    padding: 8px 10px;
+    background: rgb(14, 18, 22);
+    border: 1px solid rgba(0, 179, 255, 0.7);
+    color: #cfe0ea;
+    font-size: 13px;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+/* Badges tab: Obtained / Not obtained sections */
+.paqol-badge-heading {
+    clear: both;
+    padding: 14px 4px 6px 4px;
+    color: #9db8c8;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(0, 179, 255, 0.35);
+    margin-bottom: 8px;
+}
+
+.paqol-badge-empty {
+    clear: both;
+    padding: 4px;
+    color: #7f97a6;
+    font-style: italic;
+}
+
+#paqol-badge-locked .paqol-badge-locked-tile { cursor: help; }
+#paqol-badge-locked .paqol-badge-locked-tile img.icon {
+    -webkit-filter: grayscale(100%);
+    opacity: 0.45;
+}
+#paqol-badge-locked .paqol-badge-locked-tile:hover img.icon { opacity: 0.7; }

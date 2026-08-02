@@ -1,0 +1,50 @@
+/* PA:T QoL — armory cart quick-add button */
+/* Styled to match the stock .lbl_price green tag (armory.css:339). The
+   .div_price pill floats right; this block sibling follows it in the DOM,
+   is NOT floated, and overflow:hidden makes it fill the remaining width —
+   from the tile's left edge up to the price tag. */
+.paqol-cart-add {
+    font-family: "Sansation";
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    display: block;
+    overflow: hidden;
+    margin-right: 6px;
+    padding: 4px 6px;
+    background: green;
+    color: #fff;
+    border: 1px solid #0f0;
+    cursor: pointer;
+}
+.paqol-cart-add:hover {
+    background: #00a000;
+    text-shadow: 0px 0px 6px #ffffff;
+}
+.paqol-cart-add:active {
+    background: #00c000;
+}
+
+/* in-cart state: red "Remove from cart" */
+.paqol-cart-add.paqol-cart-in {
+    background: #8b0000;
+    border-color: #f00;
+}
+.paqol-cart-add.paqol-cart-in:hover {
+    background: #a80000;
+}
+.paqol-cart-add.paqol-cart-in:active {
+    background: #c00000;
+}
+
+/* footer "Buy All Available" — a second hero button beside the stock one */
+.paqol-buy-all {
+    margin-left: 10px;
+}
+.paqol-buy-all.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+.paqol-checkout {
+    margin-left: 10px;
+}

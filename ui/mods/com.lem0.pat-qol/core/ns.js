@@ -4,7 +4,7 @@ var paqol = window.paqol || {};
 window.paqol = paqol;
 
 paqol.MOD_ID = 'com.lem0.pat-qol';
-paqol.VERSION = '0.4.2';
+paqol.VERSION = '0.5.0';
 paqol.URL = 'coui://ui/mods/com.lem0.pat-qol/';
 
 // Per-scene load guard (Rule 3: idempotent initialization).

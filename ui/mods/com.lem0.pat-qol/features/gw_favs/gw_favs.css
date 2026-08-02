@@ -1,0 +1,55 @@
+/* PA:T QoL — favorite stars in the GW commander picker (GWO modal) */
+.gwo-commander-picker-item { position: relative; }
+
+.paqol-gw-fav-star {
+    position: absolute;
+    top: 0px;
+    right: 3px;
+    font-size: 18px;
+    line-height: 20px;
+    /* unset: hollow with a yellow outline; set: solid gold — clickable */
+    color: rgba(255, 215, 0, 0.12);
+    -webkit-text-stroke: 1px #ffd700;
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.paqol-gw-fav-star:hover {
+    color: rgba(255, 215, 0, 0.55);
+}
+.paqol-gw-fav-star.paqol-fav-on {
+    color: #ffd700;
+}
+
+/* stock carousel: toggle star centered between the prev/next arrows
+   (#commander-prev/#commander-next sit at the bottom of the 428px-tall
+   #commander-select box, 74px tall) */
+#commander-select { position: relative; }
+
+#paqol-gw-carousel-star {
+    position: absolute;
+    left: 50%;
+    top: 375px;
+    margin-left: -15px;
+    width: 30px;
+    font-size: 28px;
+    line-height: 30px;
+    text-align: center;
+    /* unset: hollow with a yellow outline (same language as the armory) */
+    color: rgba(255, 215, 0, 0.12);
+    -webkit-text-stroke: 1.5px #ffd700;
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+#paqol-gw-carousel-star:hover {
+    color: rgba(255, 215, 0, 0.55);
+}
+#paqol-gw-carousel-star.paqol-fav-on {
+    color: #ffd700;
+}
+#paqol-gw-carousel-star.paqol-fav-on:hover {
+    color: #ffe75c;
+}

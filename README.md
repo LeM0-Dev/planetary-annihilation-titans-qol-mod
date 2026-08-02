@@ -32,18 +32,48 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   anti-nukes, unit cannons, Catalysts, Halleys and teleporters — each
   category individually toggleable. Click to jump there. Entries disappear on
   confirmed kill and dim when the sighting is stale.
-- **Own & Allied** — a third window with OWN and ALLIED sections: your
-  commander(s) always listed (tagged `[IDLE]` when they have no orders),
-  units in combat, and idle factories that clear themselves once given work.
-  Click to jump.
+- **Own Units / Own Structures / Allies** — three more windows. *Own
+  Units*: your commander(s) (tagged `[IDLE]` when orderless), units in
+  combat, **idle fabricators** grouped per planet, and **stuck units** — a
+  ground unit holding a move/patrol order that has not moved for ~16 s shows
+  as "<Unit> stuck ×N". *Own Structures*: idle factories that clear
+  themselves once given work, plus **nuke & anti-nuke launcher status**
+  (Building n% / Preparing / green READY, interceptor stock n/3 from the
+  engine's ammo alerts). *Allies*: allied commanders and combat. Clicking a
+  row jumps the camera AND selects what it points at (commander, idle
+  factory, fabber group, stuck group, launcher) so re-tasking is one order
+  away; launcher rows select on single click and jump on double click.
+- **Armory extras** — locked commanders carry a **?** badge explaining how
+  they are obtained (tournaments, ranked seasons, PTE/LABS, Kickstarter);
+  bought commanders read **Purchased** instead of Owned; the Badges tab
+  splits into Obtained / Not obtained with tooltips. Every for-sale tile has
+  an in-place **Add to cart / Remove from cart** button (no tab yanking),
+  the footer gains **Buy All Available ($total)** / **Remove All (n)** and a
+  **Checkout ($total)** button, and the default-commander flow lives on the
+  tiles: a blue **DEFAULT** pill (click to clear) and **SET DEFAULT** buttons.
+- **Favorite commanders** — star any commander in the armory (top right of
+  each tile); favorites sort to the top, right after your default. The same
+  favorites carry into **Galactic War setup** (stock carousel and the
+  GW-AI-Overhaul picker, both sorted, both with toggle stars) and the
+  **game lobby** commander picker (skirmish and multiplayer) — one shared
+  list, editable from all three screens.
+- **Galactic War extras** — map travel moves 3× faster; every system with a
+  living enemy shows an intel label under its star (planets, threat — the
+  same formula GW-AI-Overhaul's intel screen uses — enemy armies and
+  commander counts, allies); and during a GW battle the ESC menu gains a
+  **Game Info** popup with that intel plus active modifiers (sudden death,
+  bounty, eradication, AI buffs).
 
 Rows in all windows carry the unit's build icon plus its orbit-style
 strategic icon tinted in the owner's army colour (dark colours brightened
 for readability), the unit's real in-game name, and a right-aligned game
-timestamp. Right-click any row to dismiss it.
+timestamp. Right-click any row to dismiss it. A **Text & icon size** setting
+(free-typed 50–300% with a live preview) scales all three windows and
+applies to running windows within seconds.
 
 Configure everything under **Settings → PA:T QOL** (works from the main menu
-and in-game). Window layout changes apply at the start of the next game.
+and in-game). Enabling/disabling windows applies at the start of the next
+game; the size setting applies immediately.
 
 ## Screenshots
 

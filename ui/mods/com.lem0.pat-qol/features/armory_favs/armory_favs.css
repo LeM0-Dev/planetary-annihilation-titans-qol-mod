@@ -1,0 +1,66 @@
+/* PA:T QoL — favorite-commander star */
+/* Lives in the tile's title band (.commander-title-grp is position:relative,
+   armory.css:109), right-aligned on the same row as the commander name and
+   sized like it (20px, armory.css:114). */
+.paqol-fav-star {
+    position: absolute;
+    top: -2px;
+    right: 6px;
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 28px;
+    /* unset state: hollow star with a yellow outline so it reads at a glance */
+    color: rgba(255, 215, 0, 0.12);
+    -webkit-text-stroke: 1.5px #ffd700;
+    cursor: pointer;
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
+    -webkit-user-select: none;
+    user-select: none;
+}
+.paqol-fav-star:hover {
+    color: rgba(255, 215, 0, 0.55);
+}
+.paqol-fav-star.paqol-fav-on {
+    color: #ffd700;
+}
+.paqol-fav-star.paqol-fav-on:hover {
+    color: #ffe75c;
+}
+
+/* keep long commander names clear of the star */
+#commander-list .commander-title {
+    padding-right: 40px;
+}
+
+/* default-commander pill: fills the price row like the cart button does
+   (block sibling after the right-floated .div_price) */
+.paqol-default-pill,
+.paqol-setdefault {
+    font-family: "Sansation";
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    display: block;
+    overflow: hidden;
+    margin-right: 6px;
+    padding: 4px 6px;
+    color: #fff;
+    cursor: pointer;
+}
+.paqol-default-pill {
+    background: rgba(0, 179, 255, 0.35);
+    border: 1px solid #00b3ff;
+}
+.paqol-default-pill:hover {
+    background: rgba(0, 179, 255, 0.55);
+}
+/* action, not state: dimmer until hovered */
+.paqol-setdefault {
+    background: rgba(0, 179, 255, 0.10);
+    border: 1px solid rgba(0, 179, 255, 0.45);
+    color: #9fd8f2;
+}
+.paqol-setdefault:hover {
+    background: rgba(0, 179, 255, 0.35);
+    color: #ffffff;
+}

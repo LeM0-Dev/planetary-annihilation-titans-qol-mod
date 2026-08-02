@@ -106,6 +106,46 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 32. Galactic War (`gw_play` → live game) → no errors.
 33. Disable the mod, restart → no residue; settings opens on a valid tab.
 
+## H. Armory (0.5.0)
+
+34. Locked commanders show the **?** badge; hover explains acquisition
+    (known ones specific, rest "Obtainability unknown."). Owned/free show no
+    badge.
+35. Bought commanders read **Purchased** (green pill); free/granted keep
+    **Owned**.
+36. Badges tab: Obtained and Not obtained sections; locked badges greyed
+    with tooltips.
+37. Tile **Add to cart** → cart pill count ticks up, no tab switch; button
+    flips to red **Remove from cart**; clicking that removes it again.
+38. **Buy All Available ($total)** adds every buyable commander in one go;
+    flips to **Remove All (n)**; **Checkout ($total)** appears and jumps to
+    the cart tab. Purchase flow itself unchanged.
+39. Stars: favorite a commander → sorts to the top under the default;
+    unfavorite the last favorite → order returns to stock. **DEFAULT** pill
+    on the current default (click clears); **SET DEFAULT** on other usable
+    tiles works; stock footer button and star overlay are gone.
+
+## I. Commander favorites across screens (0.5.0)
+
+40. GW setup (stock): carousel order = default, favorites, rest; star
+    between the arrows toggles the shown commander.
+41. GW setup (GW AI Overhaul enabled): picker grid sorted the same; every
+    tile has a toggle star.
+42. Game lobby (skirmish/MP): picker sorted the same; tile stars toggle;
+    selecting a commander then toggling any star keeps the same commander
+    selected (no update_commander resent).
+43. Favorite toggled in ANY of the three screens shows up in the other two.
+
+## J. Window scale (0.5.0)
+
+44. Settings: type "5" → error note shows, preview renders at 50, nothing
+    saved; complete to "90" → error clears, preview at 90, saved.
+45. Mid-game: change the size → all three windows re-zoom within ~2 s.
+46. At 150%: drag and resize each window — the titlebar must track the
+    cursor exactly (Chrome 40 zoom/event-coordinate interaction is
+    unverified; if it drifts, coordinates need multiplying by the zoom
+    factor in window.js stream()).
+
 ## First human-vs-human multiplayer session (once, when it happens)
 
 - An ally pings → the row appears (plain white "Ping" — sender attribution
@@ -123,3 +163,18 @@ panel context (Coherent debugger, `--coherent_port=9999`).
   be consumed by the page or they zoom the camera (handled in window.js).
 - **S3 — alert id stability**: confirmed stable — sight and death alerts for
   the same unit share `alert.id`; the target window keys on it.
+
+## K. Galactic War extras (0.5.0)
+
+47. GW map: travel between nodes is visibly fast (3×), including after
+    returning from a battle (the boost re-applies to the rebuilt player).
+48. Every star with a living enemy shows the intel label; the number matches
+    GW-AI-Overhaul's intel screen when GWO is enabled; labels persist on
+    systems you travelled past and disappear once conquered.
+49. In a GW battle: ESC menu shows **Game Info** (GW games only, absent in
+    skirmish); the popup lists system, planets/threat, enemies (with
+    commander counts and names), allies, modifiers; ✕ closes it; it is
+    fixed-size and draggable.
+50. Own Structures: nuke launcher flips Building → Preparing → green READY
+    the moment the missile completes; anti-nuke shows n/3 and only shows
+    "(building)" below full stock.

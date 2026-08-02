@@ -6,14 +6,14 @@
     "titans"
   ],
   "context": "client",
-  "date": "2026-08-02",
+  "date": "2026-08-03",
   "description": "Quality-of-life UI additions: per-notification enable/priority control, a persistent notification history with game-time stamps and camera jump, and a spotted enemy high-value target list.",
   "display_name": "PA:T QoL",
   "forum": "https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/discussions",
   "identifier": "com.lem0.pat-qol",
   "signature": " ",
   "titansOnly": true,
-  "version": "0.4.2",
+  "version": "0.5.0",
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
@@ -60,6 +60,53 @@
       "coui://ui/mods/com.lem0.pat-qol/features/notify_priority/defaults.js",
       "coui://ui/mods/com.lem0.pat-qol/features/settings_tab/feature.js",
       "coui://ui/mods/com.lem0.pat-qol/scenes/settings.boot.js"
+    ],
+    "armory": [
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_info/armory_info.css",
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_cart/armory_cart.css",
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_favs/armory_favs.css",
+      "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/log.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/invariant.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/safe.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/registry.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/store.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_info/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_cart/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/armory_favs/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/scenes/armory.boot.js"
+    ],
+    "gw_start": [
+      "coui://ui/mods/com.lem0.pat-qol/features/gw_favs/gw_favs.css",
+      "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/log.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/invariant.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/safe.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/registry.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/store.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/gw_favs/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/scenes/gw_start.boot.js"
+    ],
+    "gw_play": [
+      "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/log.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/invariant.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/safe.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/registry.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/gw_travel/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/gw_travel/intel.js",
+      "coui://ui/mods/com.lem0.pat-qol/scenes/gw_play.boot.js"
+    ],
+    "new_game": [
+      "coui://ui/mods/com.lem0.pat-qol/features/lobby_favs/lobby_favs.css",
+      "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/log.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/invariant.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/safe.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/registry.js",
+      "coui://ui/mods/com.lem0.pat-qol/core/store.js",
+      "coui://ui/mods/com.lem0.pat-qol/features/lobby_favs/feature.js",
+      "coui://ui/mods/com.lem0.pat-qol/scenes/new_game.boot.js"
     ]
   },
   "icon": "https://raw.githubusercontent.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/main/docs/img/logo300x300.png"

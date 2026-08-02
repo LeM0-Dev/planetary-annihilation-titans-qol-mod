@@ -20,6 +20,7 @@ export default [
                 // PA scene globals
                 model: 'readonly', handlers: 'readonly', api: 'readonly',
                 engine: 'readonly', constants: 'readonly', audioModel: 'readonly',
+                Badges: 'readonly', PlayFab: 'readonly', CommanderUtility: 'readonly', createjs: 'readonly',
                 eventSystem: 'readonly', triggerModel: 'readonly', app: 'readonly',
                 ko: 'readonly', $: 'readonly', _: 'readonly',
                 loc: 'readonly', loadHtml: 'readonly', loadScript: 'readonly',

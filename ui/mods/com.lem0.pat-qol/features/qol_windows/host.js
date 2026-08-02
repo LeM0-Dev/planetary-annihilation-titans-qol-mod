@@ -33,8 +33,12 @@
                 WINDOWS.push({ name: 'paqol_history', def: { left: 16, top: 120, width: 480, height: 300 } });
             if (prefs.hvtEnabled !== false)
                 WINDOWS.push({ name: 'paqol_hvt', def: { left: 16, top: 432, width: 400, height: 260 } });
-            if (prefs.unitsEnabled !== false)
+            if (prefs.unitsEnabled !== false) {
+                // the own/allied content is three windows: mobile / structures / allies
                 WINDOWS.push({ name: 'paqol_units', def: { left: 16, top: 704, width: 400, height: 280 } });
+                WINDOWS.push({ name: 'paqol_structures', def: { left: 432, top: 704, width: 400, height: 280 } });
+                WINDOWS.push({ name: 'paqol_allies', def: { left: 848, top: 704, width: 400, height: 280 } });
+            }
 
             if (!WINDOWS.length) {
                 paqol.log.info('both QoL windows are disabled in settings.');
@@ -128,6 +132,7 @@
             }
 
             function beginResize(name) {
+                if (name === 'paqol_gwinfo') return; // fixed-size popup
                 if (!els[name]) return;
                 act = { name: name, kind: 'resize' };
             }
@@ -183,6 +188,12 @@
             paqol.bus.expose('paqolWinResizeStart', function (name) { beginResize(name); });
             paqol.bus.expose('paqolWinResizeMove', childMove);
             paqol.bus.expose('paqolWinResizeEnd', function () { end(); });
+            paqol.bus.expose('paqolWinClose', function (name) {
+                if (!els[name]) return;
+                els[name].style.display = 'none';
+                if (name === 'paqol_gwinfo') gwInfoVisible = false;
+                pushRegion(name);
+            });
             paqol.bus.expose('paqolWinToggleMin', function (name) {
                 var el = els[name];
                 if (!el) return;
@@ -241,7 +252,11 @@
                     if (typeof model.planetListState === 'function') {
                         _.forEach(model.planetListState().planets || [], function (p) {
                             if (p && typeof p.index === 'number')
-                                planets.push({ index: p.index, id: (typeof p.id === 'number') ? p.id : null });
+                                planets.push({
+                                    index: p.index,
+                                    id: (typeof p.id === 'number') ? p.id : null,
+                                    name: (typeof p.name === 'string') ? p.name : null
+                                });
                         });
                     }
                 } catch (e) { /* worldview scan will just skip planets */ }
@@ -249,7 +264,10 @@
             }
             function sendRoster() {
                 var payload = buildRosterPayload();
-                if (payload) messageChild('paqol_units', 'paqol_roster', payload);
+                if (!payload) return;
+                _.forEach(['paqol_units', 'paqol_structures', 'paqol_allies'], function (name) {
+                    messageChild(name, 'paqol_roster', payload);
+                });
             }
             if (model.players && typeof model.players.subscribe === 'function' &&
                 prefs.unitsEnabled !== false) {
@@ -259,6 +277,64 @@
                 // for the next roster change
                 paqol.bus.expose('paqolGetRoster', buildRosterPayload);
             }
+
+            // ------------------------------------------- GW Game Info menu
+            // ESC menu gains a "Game Info" entry in Galactic War games; it
+            // toggles a small window fed by the intel gw_play persisted for
+            // the current star (store 'gwintel').
+            var gwInfoVisible = false;
+            model.paqolMenuGameInfo = function () {
+                var name = 'paqol_gwinfo';
+                if (!els[name]) {
+                    var vp = viewport();
+                    createWindow({
+                        name: name,
+                        def: {
+                            left: Math.max(16, Math.round(vp.w / 2 - 210)),
+                            top: Math.max(16, Math.round(vp.h / 2 - 160)),
+                            width: 420, height: 320
+                        }
+                    });
+                    // fixed size: whatever geometry was stored, the popup is
+                    // always 420x320 (position stays draggable/persisted)
+                    els[name].style.width = '420px';
+                    els[name].style.height = '320px';
+                    pushRegion(name);
+                    gwInfoVisible = true;
+                } else {
+                    gwInfoVisible = !gwInfoVisible;
+                    els[name].style.display = gwInfoVisible ? '' : 'none';
+                    pushRegion(name);
+                }
+                // stock behaviour: menu closes after an action
+                if (typeof model.showMenu === 'function') model.showMenu(false);
+            };
+
+            // menuConfigGenerator is an observable HOLDING the generator fn
+            // (the GW patch swaps it too) — wrap whatever value it has, and
+            // re-wrap if something replaces it later.
+            function wrapMenuGen() {
+                if (typeof model.menuConfigGenerator !== 'function') return;
+                var gen = model.menuConfigGenerator();
+                if (typeof gen !== 'function' || gen.paqolWrapped) return;
+                var wrapped = function () {
+                    var list = gen() || [];
+                    // NB: model.isGalaticWar does NOT exist on the main VM
+                    // (it lives on a sub-model); gameType() is the flag
+                    if (typeof model.gameType === 'function' && model.gameType() === 'Galactic War') {
+                        var entry = { label: 'Game Info', action: 'paqolMenuGameInfo' };
+                        var at = 1 + _.findIndex(list, { action: 'menuTogglePlayerGuide' });
+                        if (at > 0) list.splice(at, 0, entry);
+                        else list.push(entry);
+                    }
+                    return list;
+                };
+                wrapped.paqolWrapped = true;
+                model.menuConfigGenerator(wrapped);
+            }
+            wrapMenuGen();
+            if (model.menuConfigGenerator && typeof model.menuConfigGenerator.subscribe === 'function')
+                model.menuConfigGenerator.subscribe(function () { _.defer(wrapMenuGen); });
 
             // ------------------------------------- derived event forwarding
             // nuke_ready / commander_destroyed / ... only exist as
@@ -312,7 +388,7 @@
                             paqol.log.info('watch lists widened (' + extraTypes.join('/') + ').');
                         }
                         if (widenIdle)
-                            engine.call('watchlist.setIdleAlertTypes', JSON.stringify(['Factory']), JSON.stringify([]));
+                            engine.call('watchlist.setIdleAlertTypes', JSON.stringify(['Factory', 'Fabber']), JSON.stringify([]));
                     }
                     return result;
                 }, 'model.setupWatchList');

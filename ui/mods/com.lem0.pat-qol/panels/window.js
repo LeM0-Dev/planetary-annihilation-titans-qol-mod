@@ -17,12 +17,40 @@
     var handlers = {};
 
     var role = (window.api && api.Panel && api.Panel.pageName) || '';
-    if (role !== 'paqol_history' && role !== 'paqol_hvt' && role !== 'paqol_units') {
+    // the own/allied content splits across three windows sharing the same
+    // data machinery — each polls only what it renders
+    var IS_UNITS = role === 'paqol_units';        // own MOBILE: commander, stuck, fabbers, combat
+    var IS_STRUCTS = role === 'paqol_structures'; // own STRUCTURES: idle factories, nuke/anti status
+    var IS_ALLIES = role === 'paqol_allies';      // everything allied
+    var IS_UNIT_FAMILY = IS_UNITS || IS_STRUCTS || IS_ALLIES;
+    var IS_GWINFO = role === 'paqol_gwinfo';      // static GW battle intel
+    if (role !== 'paqol_history' && role !== 'paqol_hvt' && !IS_UNIT_FAMILY && !IS_GWINFO) {
         console.error('[' + paqol.MOD_ID + '] window page loaded with unknown panel name "' + role + '"');
         return;
     }
 
     var prefs = paqol.store.get('prefs') || {};
+    // user-set text/icon scale: CSS zoom scales the whole page content
+    // (text, icons, paddings) inside the fixed panel box
+    // 100% deliberately maps to raw zoom 0.9 — the original 1:1 rendering
+    // was oversized, so the user-facing scale is rebased 10% down.
+    var SCALE_BASE = 0.9;
+    var appliedScale = null;
+    function applyScale(p) {
+        var s = (p && typeof p.windowScale === 'number') ? p.windowScale : 100;
+        if (s === appliedScale) return;
+        appliedScale = s;
+        document.body.style.zoom = String(s * SCALE_BASE / 100);
+    }
+    applyScale(prefs);
+    // the in-game settings panel is a separate page sharing localStorage —
+    // re-read (cache-bypassing) so scale/toggle changes apply mid-game
+    setInterval(function () {
+        try {
+            prefs = paqol.store.reload('prefs') || {};
+            applyScale(prefs);
+        } catch (e) { /* keep current */ }
+    }, 2000);
     var gameTime = null;
     var STALE_SECONDS = 300;
 
@@ -179,9 +207,43 @@
     model.role = role;
     model.title = ko.observable(
         role === 'paqol_history' ? 'Notification History'
-            : (role === 'paqol_hvt' ? 'Enemy Targets' : 'Own & Allied'));
+            : role === 'paqol_hvt' ? 'Enemy Targets'
+                : IS_UNITS ? 'Own Units'
+                    : IS_STRUCTS ? 'Own Structures'
+                        : IS_GWINFO ? 'Game Info' : 'Allies');
     model.minimized = ko.observable(false);
+    // nuke rows: single click selects ONLY (no camera yank while managing
+    // silos); a second click within the window jumps too
+    var lastNukeClick = { id: null, at: 0 };
     model.jump = function (row) {
+        // clicking your own commander also SELECTS him; clicking a stuck
+        // group selects those units so re-pathing is one order away
+        if (row && api.select) {
+            if (row.kind === 'commander' && ownArmyId !== null && row.army_id === ownArmyId &&
+                row.colonel && row.refId !== undefined &&
+                typeof api.select.unitsById === 'function')
+                api.select.unitsById([Number(row.refId)]); // select.commander() would grab the REAL commander
+            else if (row.kind === 'commander' && ownArmyId !== null && row.army_id === ownArmyId &&
+                typeof api.select.commander === 'function')
+                api.select.commander();
+            // NB: the JS wrapper is unitsById — the engine call underneath is
+            // named select.byIds, but api.select.byIds does NOT exist
+            else if ((row.kind === 'stuck' || row.kind === 'fabbers') &&
+                _.isArray(row.refIds) && row.refIds.length &&
+                typeof api.select.unitsById === 'function')
+                api.select.unitsById(row.refIds);
+            else if ((row.kind === 'idle' || row.kind === 'nuke') && row.refId !== undefined &&
+                typeof api.select.unitsById === 'function')
+                api.select.unitsById([Number(row.refId)]);
+        }
+        // finished nuke rows (Preparing/READY): first click = select only,
+        // double click = jump as well. Building rows jump like everything.
+        if (row && row.kind === 'nuke' && !row.building) {
+            var now = new Date().getTime();
+            var again = lastNukeClick.id === row.refId && (now - lastNukeClick.at) < 450;
+            lastNukeClick = { id: row.refId, at: now };
+            if (!again) return;
+        }
         var target = row && (row.location ? row : (row.entry && row.entry.location ? row.entry : null));
         if (target && target.location && target.planet_id !== null && target.planet_id !== undefined) {
             api.camera.lookAt({ location: target.location, planet_id: target.planet_id, zoom: 'air' }, true);
@@ -213,9 +275,10 @@
             var name;
             if (row.isCommander) {
                 colorRev();
+                var word = row.roleWord || 'Commander'; // Colonels are support commanders
                 var player = armyName[row.army_id];
-                name = player ? player + ' Commander'
-                    : (row.hostile ? 'Enemy Commander' : (row.allied ? 'Allied Commander' : 'Commander'));
+                name = player ? player + ' ' + word
+                    : (row.hostile ? 'Enemy ' + word : (row.allied ? 'Allied ' + word : word));
             } else {
                 var display = displayNameFor(row.specKey);
                 var own = ownArmyId !== null && row.army_id === ownArmyId;
@@ -237,9 +300,16 @@
             ring.remove(row);
             if (row.key && lastByKey[row.key] && lastByKey[row.key].row === row)
                 delete lastByKey[row.key];
-        } else if (role === 'paqol_units') {
+        } else if (IS_UNIT_FAMILY) {
             if (row.kind === 'combat') delete combats[row.refId];
             else if (row.kind === 'idle') delete idleFactories[row.refId];
+            else if (row.kind === 'stuck') {
+                // suppress these exact units until they move again
+                _.forEach(row.refIds || [], function (id) { stuckDismissed[id] = true; });
+                stuckRows = _.reject(stuckRows, function (c) { return c.ids === row.refIds; });
+            }
+            else if (row.kind === 'fabbers')
+                _.forEach(row.refIds || [], function (id) { delete idleFabbers[id]; });
             // commander rows are re-polled; dismissing them is meaningless
         } else if (row.entry && entries[row.entry.id]) {
             delete entries[row.entry.id];
@@ -448,8 +518,10 @@
     var rosterByIndex = {};     // engine army index -> roster entry
     var planetCount = 0;        // worldview scans are per-planet
     var planetIdByIndex = {};   // camera targets need the ID, not the index
+    var planetNameById = {};    // planet id -> display name (for grouping labels)
     var combats = {};           // id -> {group, location, planet_id, at}
     var idleFactories = {};     // alert id (= unit id) -> row source
+    var idleFabbers = {};       // alert id (= unit id) -> {planet_id, location, at}
     var commanders = [];        // [{group, army_id, specKey, planet, location, idle}]
 
     function rosterGroup(armyId) {
@@ -468,15 +540,19 @@
         if (typeof payload.planetCount === 'number') planetCount = payload.planetCount;
         if (_.isArray(payload.planets)) {
             planetIdByIndex = {};
+            planetNameById = {};
             _.forEach(payload.planets, function (p) {
-                if (p && p.id !== null && p.id !== undefined) planetIdByIndex[p.index] = p.id;
+                if (p && p.id !== null && p.id !== undefined) {
+                    planetIdByIndex[p.index] = p.id;
+                    if (p.name) planetNameById[p.id] = p.name;
+                }
             });
         }
         rev(rev() + 1);
     };
 
     handlers.combat_list = function (payload) {
-        if (role !== 'paqol_units' || !payload || !_.isArray(payload.list)) return;
+        if (!(IS_UNITS || IS_ALLIES) || !payload || !_.isArray(payload.list)) return;
         var changed = false;
         for (var i = 0; i < payload.list.length; i++) {
             var c = payload.list[i];
@@ -507,21 +583,61 @@
     function unitsIngest(alert) {
         var WT = constants.watch_type;
         if (alert.is_hostile === true) return;
+        // ammo stock changes (base game registers the ammo watch for
+        // Nuke/NukeDefense): the ONLY source of launcher missile counts —
+        // ammo units are invisible to getArmyUnits/getUnitState
+        if (alert.watch_type === WT.ammo_fraction_change) {
+            if (IS_STRUCTS && typeof alert.ammo_count === 'number' && alert.id !== undefined) {
+                ammoByUnit[alert.id] = {
+                    count: alert.ammo_count,
+                    max: (typeof alert.max_ammo_count === 'number') ? alert.max_ammo_count : 0
+                };
+                rev(rev() + 1);
+            }
+            return;
+        }
         if (alert.watch_type === WT.idle) {
-            var group = rosterGroup(alert.army_id) || 'own';
-            if (group === 'hostile') return;
-            idleFactories[alert.id] = {
-                group: group,
-                specKey: canonicalSpec(alert.spec_id),
-                fallbackName: specLabel(alert.spec_id),
-                army_id: alert.army_id,
-                location: alert.location || null,
-                planet_id: (alert.planet_id === undefined) ? null : alert.planet_id,
-                at: gameTime
-            };
+            // with a roster loaded, an army we cannot place is NOT ours
+            // (e.g. the GW co-op sub-commander before/despite mapping)
+            var group = rosterGroup(alert.army_id) || (roster.length ? null : 'own');
+            if (!group || group === 'hostile') return;
+            var UT = window.constants && constants.unit_type;
+            // commanders show their own [IDLE] tag; skip them here
+            if (UT && (paqolHvt.isType(UT.Commander, alert.unit_types) ||
+                paqolHvt.isType(UT.SupportCommander, alert.unit_types))) return;
+            // nuke/anti-nuke launchers have their own dedicated status rows
+            // (Building/Preparing/ammo count) — an extra "idle" row is noise
+            if (alert.spec_id && (NUKE_SPEC.test(alert.spec_id) || ANTI_SPEC.test(alert.spec_id))) return;
+            if (UT && paqolHvt.isType(UT.Fabber, alert.unit_types) &&
+                !paqolHvt.isType(UT.Factory, alert.unit_types)) {
+                // mobile fabricators: aggregated per planet, not per unit
+                if (!IS_UNITS) return; // fabbers render in Own Units
+                // strictly YOUR army — in GW co-op the sub-commander's army
+                // also produces idle alerts and its fabbers are not yours
+                if (group !== 'own') return;
+                idleFabbers[alert.id] = {
+                    location: alert.location || null,
+                    planet_id: (alert.planet_id === undefined) ? null : alert.planet_id,
+                    at: gameTime
+                };
+            } else {
+                // factories render in Own Structures (allied idles never
+                // arrive — the engine's idle watch is own-army only)
+                if (!IS_STRUCTS) return;
+                idleFactories[alert.id] = {
+                    group: group,
+                    specKey: canonicalSpec(alert.spec_id),
+                    fallbackName: specLabel(alert.spec_id),
+                    army_id: alert.army_id,
+                    location: alert.location || null,
+                    planet_id: (alert.planet_id === undefined) ? null : alert.planet_id,
+                    at: gameTime
+                };
+            }
             rev(rev() + 1);
         } else if (alert.watch_type === WT.death || alert.watch_type === WT.target_destroyed) {
             if (idleFactories[alert.id]) { delete idleFactories[alert.id]; rev(rev() + 1); }
+            if (idleFabbers[alert.id]) { delete idleFabbers[alert.id]; rev(rev() + 1); }
         } else if (alert.watch_type === WT.ready && alert.location) {
             // a unit rolled out: any "idle" factory right there is idle no more
             var cleared = false;
@@ -546,15 +662,17 @@
     //    → pos is the jump location, empty orders + no build_target = IDLE.
     var cmdrIds = {};   // unit id -> {specKey} (accumulated; state poll prunes)
     function pollCommanders() {
-        if (role !== 'paqol_units') return;
+        if (!(IS_UNITS || IS_ALLIES)) return;
         if (model.minimized()) return; // no fan-out while collapsed
         if (!window.api || typeof api.getWorldView !== 'function') return;
         var wv;
         try { wv = api.getWorldView(0); } catch (e) { return; }
         if (!wv || typeof wv.getArmyUnits !== 'function' || typeof wv.getUnitState !== 'function') return;
 
+        // each window scans only the armies it renders
+        var wanted = IS_UNITS ? 'own' : 'allied';
         var mine = _.filter(roster, function (r) {
-            return (r.state === 'own' || r.state === 'allied') && !r.defeated;
+            return r.state === wanted && !r.defeated;
         });
         if (!mine.length || planetCount < 1) return;
 
@@ -567,7 +685,10 @@
                         if (!/\/commanders\/|bot_support_commander/.test(spec)) return;
                         if (!_.isArray(unitIds)) return;
                         for (var u = 0; u < unitIds.length; u++)
-                            cmdrIds[unitIds[u]] = { specKey: canonicalSpec(spec) };
+                            cmdrIds[unitIds[u]] = {
+                                specKey: canonicalSpec(spec),
+                                colonel: /bot_support_commander/.test(spec)
+                            };
                     });
                     if (--scans === 0) refreshCommanderState(wv);
                 }, function () {
@@ -589,9 +710,13 @@
                 if (!r || r.state === 'hostile') return;
                 var id = ids[i];
                 alive[id] = true;
+                // a colonel still being CONSTRUCTED is not on duty yet
+                if (typeof st.built_frac === 'number' && st.built_frac < 1) return;
                 next.push({
                     group: r.state,
                     army_id: r.id,
+                    id: id,
+                    colonel: !!(cmdrIds[id] && cmdrIds[id].colonel),
                     specKey: (cmdrIds[id] && cmdrIds[id].specKey) ||
                         canonicalSpec(st.unit_spec),
                     planet: (typeof st.planet === 'number') ? st.planet : null,
@@ -610,9 +735,10 @@
     // Idle-factory refresh rides the same poll: a factory that was given
     // work shows orders/build_target (or vanishes when dead).
     function pollIdleFactories() {
-        if (role !== 'paqol_units') return;
+        if (!(IS_UNITS || IS_STRUCTS)) return; // units prunes fabbers, structures prunes factories
         if (model.minimized()) return; // no polling while collapsed
-        var ids = _.map(_.keys(idleFactories), Number);
+        var ids = _.map(_.keys(idleFactories), Number)
+            .concat(_.map(_.keys(idleFabbers), Number));
         if (!ids.length) return;
         if (!window.api || typeof api.getWorldView !== 'function') return;
         var wv;
@@ -622,23 +748,266 @@
             var changed = false;
             var seen = {};
             _.forEach(states || [], function (st, i) {
-                if (!st) return;
+                // dead/unknown ids come back as a HOLLOW OBJECT (verified
+                // live: never null, just no pos) — require pos to count as
+                // alive, so the prune below catches killed units
+                if (!st || !_.isArray(st.pos)) return;
                 seen[ids[i]] = true;
+                // still under construction: the engine already fired an
+                // "idle" alert for it (no orders yet), but it is not idle —
+                // it re-alerts once finished and actually idle
+                if (typeof st.built_frac === 'number' && st.built_frac < 1) {
+                    delete idleFactories[ids[i]];
+                    delete idleFabbers[ids[i]];
+                    changed = true;
+                    return;
+                }
                 if ((st.orders && st.orders.length) || st.build_target) {
                     delete idleFactories[ids[i]];
+                    delete idleFabbers[ids[i]];
                     changed = true;
                 }
             });
             _.forEach(ids, function (id) {
-                if (!seen[id]) { delete idleFactories[id]; changed = true; } // dead
+                if (!seen[id]) { delete idleFactories[id]; delete idleFabbers[id]; changed = true; } // dead
             });
             if (changed) rev(rev() + 1);
         });
     }
 
-    if (role === 'paqol_units') {
-        setInterval(pollCommanders, 5000);
-        setInterval(pollIdleFactories, 3000);
+    // ---- stuck-unit detection ---------------------------------------------
+    // The pathfinder itself is engine C++ and unfixable from a mod, but a
+    // stuck unit is DETECTABLE: it holds a move/patrol order while its
+    // position stays put across polls. Surface those under OWN so the player
+    // can jump there and re-path. Structures are excluded by spec (mobile =
+    // spec has a `navigation` block, cached via the existing spec fetch).
+    var STUCK_POLL_MS = 8000;
+    var STUCK_MOVE_EPSILON = 2.0;   // world units of movement that count as progress
+    var STUCK_STREAK = 2;           // stationary polls before a unit is "stuck"
+    var STUCK_ID_CAP = 600;         // hard cap on tracked ids per cycle (perf)
+    var STUCK_ORDER_TYPES = { move: true, patrol: true };
+
+    var mobileSpec = {};            // canonical spec -> true/false/undefined(fetching)
+    var stuckTrack = {};            // unit id -> {pos, streak, specKey, stuckAt}
+    var stuckDismissed = {};        // unit id -> true (right-click; cleared on movement)
+    var stuckRows = [];             // rendered cluster rows
+
+    function isMobileSpec(specKey) {
+        if (!specKey) return false;
+        if (mobileSpec[specKey] !== undefined) return mobileSpec[specKey];
+        mobileSpec[specKey] = false; // pessimistic until the fetch lands
+        if (typeof $.getJSON === 'function') {
+            $.getJSON('coui:/' + specKey).done(function (d) {
+                // GROUND movers only: air units hover-shuffle with
+                // engine-issued micro-moves that never complete, so they
+                // false-positive as stuck (and cannot wall-stick anyway).
+                var nav = d && d.navigation && d.navigation.type;
+                mobileSpec[specKey] = !!nav && !/^(air|orbital)/.test(nav);
+            });
+        }
+        return false;
+    }
+
+    function pollStuck() {
+        if (!IS_UNITS) return;
+        if (model.minimized()) return;
+        if (!window.api || typeof api.getWorldView !== 'function') return;
+        var wv;
+        try { wv = api.getWorldView(0); } catch (e) { return; }
+        if (!wv || typeof wv.getArmyUnits !== 'function' || typeof wv.getUnitState !== 'function') return;
+
+        var own = _.find(roster, function (r) { return r.state === 'own'; });
+        if (!own || planetCount < 1) return;
+
+        var ids = [];
+        var specById = {};
+        var scans = planetCount;
+        for (var p = 0; p < planetCount; p++) {
+            wv.getArmyUnits(own.index, p).then(function (bySpec) {
+                _.forEach(bySpec || {}, function (unitIds, spec) {
+                    var key = canonicalSpec(spec);
+                    if (!isMobileSpec(key) || !_.isArray(unitIds)) return;
+                    for (var u = 0; u < unitIds.length && ids.length < STUCK_ID_CAP; u++) {
+                        ids.push(unitIds[u]);
+                        specById[unitIds[u]] = key;
+                    }
+                });
+                if (--scans === 0) checkStuck(wv, ids, specById);
+            }, function () {
+                if (--scans === 0) checkStuck(wv, ids, specById);
+            });
+        }
+    }
+
+    function checkStuck(wv, ids, specById) {
+        if (!ids.length) { if (stuckRows.length) { stuckRows = []; rev(rev() + 1); } return; }
+        wv.getUnitState(ids).then(function (states) {
+            var seen = {};
+            _.forEach(states || [], function (st, i) {
+                var id = ids[i];
+                if (!st || !_.isArray(st.pos)) return;
+                seen[id] = true;
+
+                // still being CONSTRUCTED (built_frac < 1): a unit building
+                // in a factory holds its rally move order while stationary —
+                // not stuck, not trackable yet
+                if (typeof st.built_frac === 'number' && st.built_frac < 1) {
+                    delete stuckTrack[id];
+                    return;
+                }
+
+                var moving = STUCK_ORDER_TYPES[st.orders && st.orders[0] && st.orders[0].type];
+                var t = stuckTrack[id];
+                if (!moving || st.build_target) {
+                    // no move order — or actively BUILDING (a patrol-build
+                    // fabber stands still while constructing by design):
+                    // not stuck; also un-dismiss
+                    delete stuckTrack[id];
+                    delete stuckDismissed[id];
+                    return;
+                }
+                if (!t) {
+                    stuckTrack[id] = { pos: st.pos, streak: 0, specKey: specById[id], planet: st.planet, stuckAt: null };
+                    return;
+                }
+                var dx = st.pos[0] - t.pos[0], dy = st.pos[1] - t.pos[1], dz = st.pos[2] - t.pos[2];
+                var movedSq = dx * dx + dy * dy + dz * dz;
+                if (movedSq > STUCK_MOVE_EPSILON * STUCK_MOVE_EPSILON) {
+                    t.streak = 0;
+                    t.stuckAt = null;
+                    delete stuckDismissed[id]; // it moved; future stucks notify again
+                } else {
+                    t.streak++;
+                    if (t.streak >= STUCK_STREAK && t.stuckAt === null) t.stuckAt = gameTime;
+                }
+                t.pos = st.pos;
+                t.planet = st.planet;
+            });
+            // drop dead/unseen units
+            _.forEach(_.keys(stuckTrack), function (k) {
+                if (!seen[k]) { delete stuckTrack[k]; delete stuckDismissed[k]; }
+            });
+
+            // cluster stuck units by spec+planet into rows
+            var clusters = {};
+            _.forEach(stuckTrack, function (t, id) {
+                if (t.stuckAt === null || stuckDismissed[id]) return;
+                var key = (t.specKey || '?') + '@' + t.planet;
+                var c = clusters[key];
+                if (!c) {
+                    clusters[key] = c = {
+                        specKey: t.specKey, planet: t.planet, ids: [],
+                        pos: t.pos, at: t.stuckAt
+                    };
+                }
+                c.ids.push(id);
+                if (t.stuckAt !== null && (c.at === null || t.stuckAt < c.at)) c.at = t.stuckAt;
+            });
+            stuckRows = _.values(clusters);
+            rev(rev() + 1);
+        });
+    }
+
+    // ---- own nuke launchers ------------------------------------------------
+    // Status per launcher (verified live against getUnitState):
+    //   built_frac < 1      -> the LAUNCHER is under construction ("Building")
+    //   build_target set    -> it is building its missile; build_target IS the
+    //                          missile's unit id, whose own built_frac is the
+    //                          preparation progress ("Preparing")
+    //   neither             -> missile stored ("Ready")
+    // Missile counts come from ammo_fraction_change alerts (watch_type 14,
+    // registered by the base game for Nuke/NukeDefense): payload carries
+    // exact ammo_count/max_ammo_count. Ammo units themselves are INVISIBLE
+    // to getArmyUnits and getUnitState (verified live: absent from army
+    // lists, hollow {} states), so alerts are the only source — and no
+    // missile build percentage exists anywhere.
+    var NUKE_POLL_MS = 2000;
+    var NUKE_SPEC = /\/nuke_launcher\/nuke_launcher\.json/;           // 'anti_nuke_launcher' has no '/' before 'nuke_launcher'
+    var ANTI_SPEC = /\/anti_nuke_launcher\/anti_nuke_launcher\.json/;
+    var ANTI_CAPACITY = 3;  // display fallback until the first ammo alert
+    var nukeRows = [];
+    var ammoByUnit = {}; // launcher unit id -> {count, max} from ammo alerts
+
+    function pollNukes() {
+        if (!IS_STRUCTS) return;
+        if (prefs.nukesEnabled === false) {
+            if (nukeRows.length) { nukeRows = []; rev(rev() + 1); }
+            return;
+        }
+        if (model.minimized()) return;
+        if (!window.api || typeof api.getWorldView !== 'function') return;
+        var wv;
+        try { wv = api.getWorldView(0); } catch (e) { return; }
+        if (!wv || typeof wv.getArmyUnits !== 'function' || typeof wv.getUnitState !== 'function') return;
+        var own = _.find(roster, function (r) { return r.state === 'own'; });
+        if (!own || planetCount < 1) return;
+
+        var launcherIds = [];   // [{id, type}]
+        var scans = planetCount;
+        for (var p = 0; p < planetCount; p++) {
+            wv.getArmyUnits(own.index, p).then(function (bySpec) {
+                _.forEach(bySpec || {}, function (unitIds, spec) {
+                    if (!_.isArray(unitIds)) return;
+                    var lt = NUKE_SPEC.test(spec) ? 'nuke' : (ANTI_SPEC.test(spec) ? 'anti' : null);
+                    if (!lt) return;
+                    for (var u = 0; u < unitIds.length; u++)
+                        launcherIds.push({ id: unitIds[u], type: lt });
+                });
+                if (--scans === 0) nukeStates(wv, launcherIds);
+            }, function () {
+                if (--scans === 0) nukeStates(wv, launcherIds);
+            });
+        }
+    }
+
+    function nukeStates(wv, launcherIds) {
+        if (!launcherIds.length) {
+            if (nukeRows.length) { nukeRows = []; rev(rev() + 1); }
+            return;
+        }
+        wv.getUnitState(_.pluck(launcherIds, 'id')).then(function (states) {
+            var launchers = [];
+            var liveIds = {};
+            _.forEach(states || [], function (st, i) {
+                if (!st || !_.isArray(st.pos)) return; // dead: hollow object
+                var entry = launcherIds[i];
+                liveIds[entry.id] = true;
+                var e = {
+                    id: entry.id,
+                    type: entry.type,
+                    planet: (typeof st.planet === 'number') ? st.planet : null,
+                    pos: st.pos,
+                    specKey: canonicalSpec(st.unit_spec)
+                };
+                if (typeof st.built_frac === 'number' && st.built_frac < 1) {
+                    e.status = 'Building';
+                    e.pct = Math.floor(st.built_frac * 100);
+                } else if (st.build_target) {
+                    // the missile itself is INVISIBLE to getUnitState
+                    // (returns {}), so no build percentage exists — the
+                    // ammo alerts only report whole-missile counts
+                    e.status = 'Preparing';
+                } else {
+                    e.status = 'Idle';
+                }
+                launchers.push(e);
+            });
+            // drop ammo records of dead launchers (and of non-launcher
+            // units the ammo watch also covers, e.g. artillery)
+            _.forEach(_.keys(ammoByUnit), function (k) {
+                if (!liveIds[k]) delete ammoByUnit[k];
+            });
+            nukeRows = launchers;
+            rev(rev() + 1);
+        });
+    }
+
+    if (IS_UNITS) setInterval(pollStuck, STUCK_POLL_MS);
+    if (IS_STRUCTS) setInterval(pollNukes, NUKE_POLL_MS);
+    if (IS_UNITS || IS_ALLIES) setInterval(pollCommanders, 5000);
+    if (IS_UNITS || IS_STRUCTS) setInterval(pollIdleFactories, 3000);
+
+    if (IS_UNIT_FAMILY) {
         // pull the roster at boot (the host pushes on change, which a freshly
         // (re)loaded window would otherwise wait on)
         try {
@@ -656,6 +1025,8 @@
             if (c.group !== group) return;
             out.push({
                 kind: 'commander', isCommander: true, template: '',
+                roleWord: c.colonel ? 'Colonel' : 'Commander',
+                colonel: c.colonel, refId: c.id,
                 fallbackName: 'Commander', specKey: c.specKey, army_id: c.army_id,
                 idleTag: c.idle === true,
                 count: 1, seenText: '',
@@ -666,6 +1037,64 @@
                 clickable: !!(c.location || c.planet !== null)
             });
         });
+        if (group === 'own') {
+            var ownEntry = _.find(roster, function (r) { return r.state === 'own'; });
+            _.forEach(nukeRows, function (n) {
+                var name = n.type === 'anti' ? 'Anti-nuke' : 'Nuke launcher';
+                var known = ammoByUnit[n.id] || null; // exact {count,max} from ammo alerts
+                var label, green = false;
+                if (n.status === 'Building') {
+                    label = name + ' — Building' + (n.pct !== undefined ? ' ' + n.pct + '%' : '');
+                } else if (n.type === 'anti') {
+                    var max = (known && known.max) ? known.max : ANTI_CAPACITY;
+                    var cnt = known ? known.count : null;
+                    label = name + ' — ' + (cnt === null ? '?' : cnt) + '/' + max +
+                        (n.status === 'Preparing' && (cnt === null || cnt < max) ? ' (building)' : '');
+                    green = cnt !== null && cnt > 0;
+                } else if (known && known.count >= (known.max || 1)) {
+                    // the ammo alert is INSTANT; the poll's build_target can
+                    // lag a few seconds — a full count always wins
+                    label = name + ' — READY';
+                    green = true;
+                } else if (n.status === 'Preparing') {
+                    label = name + ' — Preparing';
+                } else {
+                    // complete and not building = READY (per user preference,
+                    // a paused-fabrication launcher reads READY too)
+                    label = name + ' — READY';
+                    green = true;
+                }
+                out.push({
+                    kind: 'nuke', display: label, refId: n.id,
+                    building: n.status === 'Building',
+                    specKey: n.specKey, army_id: ownEntry ? ownEntry.id : undefined,
+                    count: 1, seenText: '',
+                    forceColor: green ? 'rgb(120,255,120)' : null,
+                    location: _.isArray(n.pos) ? { x: n.pos[0], y: n.pos[1], z: n.pos[2] } : null,
+                    planet_id: (n.planet !== null && planetIdByIndex[n.planet] !== undefined)
+                        ? planetIdByIndex[n.planet] : null,
+                    planetIndex: n.planet,
+                    clickable: !!_.isArray(n.pos)
+                });
+            });
+        }
+        if (group === 'own') {
+            _.forEach(stuckRows, function (c) {
+                out.push({
+                    kind: 'stuck', template: '__name__ stuck', refIds: c.ids,
+                    fallbackName: specLabel(c.specKey), specKey: c.specKey,
+                    army_id: undefined, count: c.ids.length,
+                    seenText: paqolTimefmt.format(c.at),
+                    location: _.isArray(c.pos) ? { x: c.pos[0], y: c.pos[1], z: c.pos[2] } : null,
+                    planet_id: (c.planet !== null && planetIdByIndex[c.planet] !== undefined)
+                        ? planetIdByIndex[c.planet] : null,
+                    planetIndex: c.planet,
+                    hostile: true,   // attention-red
+                    noPrefix: true,  // ...but never 'Enemy' — these are YOURS
+                    clickable: !!_.isArray(c.pos)
+                });
+            });
+        }
         var fights = _.sortBy(_.filter(_.values(combats), function (c) { return c.group === group; }),
             function (c) { return -(c.at || 0); });
         _.forEach(fights, function (c) {
@@ -677,6 +1106,28 @@
                 clickable: !!c.location
             });
         });
+        if (group === 'own') {
+            // idle mobile fabricators, grouped per planet
+            var fabByPlanet = {};
+            _.forEach(idleFabbers, function (f, id) {
+                var key = String(f.planet_id);
+                var c = fabByPlanet[key];
+                if (!c) fabByPlanet[key] = c = { planet_id: f.planet_id, ids: [], at: f.at, location: f.location };
+                c.ids.push(Number(id));
+                if (f.at !== null && (c.at === null || f.at > c.at)) { c.at = f.at; c.location = f.location || c.location; }
+            });
+            _.forEach(fabByPlanet, function (c) {
+                var pname = planetNameById[c.planet_id];
+                out.push({
+                    kind: 'fabbers', refIds: c.ids,
+                    display: 'Idle fabbers' + (pname ? ' — ' + pname : ''),
+                    specKey: null, army_id: undefined, count: c.ids.length,
+                    seenText: paqolTimefmt.format(c.at),
+                    location: c.location, planet_id: c.planet_id,
+                    clickable: !!c.location
+                });
+            });
+        }
         _.forEach(idleFactories, function (f, id) {
             if (f.group !== group) return;
             out.push({
@@ -701,14 +1152,45 @@
         if (changed) rev(rev() + 1);
     }
 
-    if (role === 'paqol_units') {
-        model.ownRows = ko.computed(function () {
-            rev(); tick();
-            return unitsRowsFor('own');
+    if (IS_GWINFO) {
+        // static per battle: the intel gw_play persisted for the star this
+        // game was launched from (store definitions are per page)
+        if (paqol.store) {
+            paqol.store.define('gwintel', {
+                version: 1,
+                defaults: {},
+                validate: function () { return []; }
+            });
+        }
+        model.rows = ko.computed(function () {
+            var d = (paqol.store && paqol.store.get('gwintel')) || {};
+            var out = [];
+            function row(text) {
+                out.push({ display: text, count: 1, seenText: '', clickable: false });
+            }
+            if (!d || d.enemies === undefined) {
+                row('No Galactic War intel available.');
+                return out;
+            }
+            if (d.system) row('System: ' + d.system);
+            row('Planets: ' + d.planets + (d.econ !== null && d.econ !== undefined ? ' — Threat: ' + d.econ : ''));
+            row('Enemies: ' + d.enemies +
+                (d.commanders > d.enemies ? ' (' + d.commanders + ' commanders)' : '') +
+                (_.isArray(d.enemyNames) && d.enemyNames.length ? ' — ' + d.enemyNames.join(', ') : ''));
+            row('Allies: ' + d.allies);
+            row('Modifiers: ' + (_.isArray(d.modifiers) && d.modifiers.length
+                ? d.modifiers.join(', ') : 'none'));
+            return out;
         });
-        model.alliedRows = ko.computed(function () {
+    }
+
+    if (IS_UNIT_FAMILY) {
+        // one flat list per window; each role's maps only ever hold its own
+        // content (polls and ingest are role-gated), so the group split is
+        // all the filtering needed
+        model.rows = ko.computed(function () {
             rev(); tick();
-            return unitsRowsFor('allied');
+            return unitsRowsFor(IS_ALLIES ? 'allied' : 'own');
         });
         setInterval(expireCombats, 5000);
     }
@@ -738,9 +1220,16 @@
         for (var i = 0; i < payload.list.length; i++) {
             var alert = payload.list[i];
             if (!alert || typeof alert !== 'object') continue;
+            // ammo status feed (nuke/anti-nuke stock) — data, not a
+            // notification: never a history row
+            if (window.constants && constants.watch_type &&
+                alert.watch_type === constants.watch_type.ammo_fraction_change) {
+                if (IS_STRUCTS) unitsIngest(alert);
+                continue;
+            }
             if (role === 'paqol_history') pushHistory(historyRow(alert));
-            else if (role === 'paqol_units') unitsIngest(alert);
-            else hvtIngest(alert);
+            else if (IS_UNIT_FAMILY) unitsIngest(alert);
+            else if (role === 'paqol_hvt') hvtIngest(alert);
         }
     };
 
@@ -798,6 +1287,9 @@
     });
 
     $('#paqol-win-minimize').on('click', function () {
+        // the Game Info popup CLOSES (host hides the panel); the persistent
+        // windows minimize
+        if (IS_GWINFO) { toParent('paqolWinClose', [role]); return; }
         toParent('paqolWinToggleMin', [role]);
     });
 
