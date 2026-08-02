@@ -35,7 +35,7 @@
                          data-bind="attr: { src: $root.siIcon($data) }" />
                     <!-- /ko -->
                     <span class="paqol-row-text"
-                          data-bind="text: $data.display, style: { color: $root.rowColor($data) }"></span>
+                          data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
                     <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
                 </div>
                 <!-- /ko -->
@@ -62,7 +62,7 @@
                          data-bind="attr: { src: $root.siIcon($data) }" />
                     <!-- /ko -->
                     <span class="paqol-row-text"
-                          data-bind="text: $data.label, style: { color: $root.rowColor($data) }"></span>
+                          data-bind="text: $root.rowText($data), style: { color: $root.rowColor($data) }"></span>
                     <span class="paqol-row-time" data-bind="text: $data.seenText"></span>
                 </div>
                 <!-- /ko -->

@@ -63,19 +63,41 @@
         return m ? m[1] : null;
     }
 
-    // Walk the base_spec chain (depth-capped) until an si_name shows up,
-    // then record it against the ORIGINAL spec key.
+    // Walk the base_spec chain (depth-capped): the unit's own display_name is
+    // taken at depth 0, si_name from wherever in the chain it first appears.
+    // Both recorded against the ORIGINAL spec key.
     function fetchSi(fromKey, targetKey, depth) {
         if (depth > 3 || typeof $.getJSON !== 'function') return;
         $.getJSON('coui:/' + fromKey).done(function (d) {
-            if (d && typeof d.si_name === 'string' && d.si_name) {
+            if (!d) return;
+            var dirty = false;
+            if (depth === 0 && typeof d.display_name === 'string' && d.display_name) {
+                specCache[targetKey].display = paqol.loc(d.display_name);
+                dirty = true;
+            }
+            if (typeof d.si_name === 'string' && d.si_name) {
                 specCache[targetKey].si = d.si_name;
-                specRev(specRev() + 1);
-            } else if (d && typeof d.base_spec === 'string') {
+                dirty = true;
+            } else if (typeof d.base_spec === 'string') {
                 var baseKey = canonicalSpec(d.base_spec);
                 if (baseKey) fetchSi(baseKey, targetKey, depth + 1);
             }
+            if (dirty) specRev(specRev() + 1);
         });
+    }
+
+    // The name the player actually sees in-game (display_name), once the
+    // spec fetch lands; null until then.
+    function displayNameFor(specKey) {
+        specRev();
+        if (!specKey) return null;
+        var entry = specCache[specKey];
+        if (entry === undefined) {
+            specCache[specKey] = { si: null, display: null };
+            fetchSi(specKey, specKey, 0);
+            return null;
+        }
+        return entry.display || null;
     }
 
     function siIconFor(row) {
@@ -83,7 +105,7 @@
         if (!row || !row.specKey) return null;
         var entry = specCache[row.specKey];
         if (entry === undefined) {
-            specCache[row.specKey] = { si: null };
+            specCache[row.specKey] = { si: null, display: null };
             fetchSi(row.specKey, row.specKey, 0);
             return null;
         }
@@ -127,6 +149,34 @@
     model.buildIcon = buildIconFor;
     model.siIcon = siIconFor;
     model.rowColor = rowColorFor;
+
+    // Row text, resolved at render time so the in-game display name (from the
+    // lazy spec fetch) and the player roster upgrade rows retroactively:
+    //   - commanders read "[player name] Commander" — nobody cares which
+    //     commander MODEL it is; the player is the information
+    //   - other units use their real in-game display_name (Ragnarok, Angel)
+    //     with the filename-derived label as fallback until the fetch lands
+    model.rowText = function (row) {
+        if (!row) return '';
+        var base;
+        if (row.template === undefined) {
+            base = row.display || row.label || '';
+        } else {
+            var name;
+            if (row.isCommander) {
+                colorRev();
+                var player = armyName[row.army_id];
+                name = player ? player + ' Commander'
+                    : (row.hostile ? 'Enemy Commander' : (row.allied ? 'Allied Commander' : 'Commander'));
+            } else {
+                var display = displayNameFor(row.specKey);
+                var prefix = row.noPrefix ? '' : (row.hostile ? 'Enemy ' : (row.allied ? 'Allied ' : ''));
+                name = prefix + (display || row.fallbackName);
+            }
+            base = row.template ? row.template.replace('__name__', name) : name;
+        }
+        return (row.count > 1) ? base + ' ×' + row.count : base;
+    };
 
     // right-click a row -> remove just that entry
     model.dismiss = function (row) {
@@ -204,44 +254,22 @@
             ring.remove(prev.row);
         }
         if (row.key) lastByKey[row.key] = { row: row, at: now };
-        row.display = row.count > 1 ? row.text + ' ×' + row.count : row.text;
+        // (row text incl. the ×N counter is composed at render time by
+        // model.rowText, so late display-name/roster data upgrades rows)
         ring.push(row);
         rev(rev() + 1);
     }
 
     function historyRow(alert) {
         var wtName = watchNameById[alert.watch_type];
-        var template = WATCH_VERBS[wtName];
         var hostile = alert.is_hostile === true;
         var allied = alert.is_allied === true && !hostile;
-        var name = specLabel(alert.spec_id);
-        if (hostile) name = 'Enemy ' + name;
-        else if (allied) name = 'Allied ' + name;
-
-        var text;
-        if (alert.custom) text = alert.name ? String(alert.name) : 'Alert';
-        else if (wtName === 'ping') {
-            // attribute the ping to its sender when the engine provides one
-            var pinger = armyName[alert.army_id];
-            text = pinger ? 'Ping — ' + pinger : 'Ping';
-        }
-        else if (template) text = template.replace('__name__', name);
-        else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
-
-        var hasLocation = !!(alert.location && alert.planet_id !== undefined && alert.planet_id !== null);
         var specKey = canonicalSpec(alert.spec_id);
-        // Pings are deliberate player communication: two pings are two
-        // messages (different senders, different spots) — never merge them.
-        // key null = exempt from coalescing.
-        var key;
-        if (wtName === 'ping') key = null;
-        else if (alert.custom) key = 'custom:' + (alert.name || '');
-        else key = 'wt:' + alert.watch_type + ':' + (specKey || '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o'));
-        return {
-            key: key,
+        var hasLocation = !!(alert.location && alert.planet_id !== undefined && alert.planet_id !== null);
+
+        var row = {
             count: 1,
             timeText: paqolTimefmt.format(gameTime),
-            text: text,
             specKey: alert.custom ? null : specKey,
             army_id: alert.army_id,
             hostile: hostile,
@@ -249,6 +277,25 @@
             location: hasLocation ? alert.location : null,
             planet_id: hasLocation ? alert.planet_id : null
         };
+
+        if (alert.custom) {
+            row.key = 'custom:' + (alert.name || '');
+            row.display = alert.name ? String(alert.name) : 'Alert';
+        } else if (wtName === 'ping') {
+            // Pings are deliberate player communication: two pings are two
+            // messages — key null exempts them from coalescing.
+            var pinger = armyName[alert.army_id];
+            row.key = null;
+            row.display = pinger ? 'Ping — ' + pinger : 'Ping';
+        } else {
+            row.key = 'wt:' + alert.watch_type + ':' + (specKey || '') + ':' +
+                (hostile ? 'h' : (allied ? 'a' : 'o'));
+            row.template = WATCH_VERBS[wtName] ||
+                ('__name__ ' + humanize(wtName || ('alert ' + alert.watch_type)));
+            row.fallbackName = specLabel(alert.spec_id);
+            row.isCommander = !!paqolHvt.isType(paqolHvt.BITS.Commander, alert.unit_types);
+        }
+        return row;
     }
 
     // ---- enemy HVT state
@@ -280,6 +327,7 @@
         entries[alert.id] = {
             id: alert.id,
             rank: cat.rank,
+            catKey: cat.key,
             label: specLabel(alert.spec_id),
             specKey: canonicalSpec(alert.spec_id),
             army_id: alert.army_id,
@@ -301,10 +349,14 @@
                     ? (gameTime - e.lastSeen) > STALE_SECONDS : false;
                 return {
                     entry: e,
-                    label: e.label,
+                    template: '',            // rowText: name only
+                    noPrefix: true,          // everything here is enemy already
+                    fallbackName: e.label,
+                    isCommander: e.catKey === 'commander',
                     specKey: e.specKey,
                     army_id: e.army_id,
                     hostile: true,
+                    count: 1,
                     seenText: paqolTimefmt.format(e.lastSeen),
                     stale: stale,
                     clickable: !!(e.location && e.planet_id !== null)
@@ -354,7 +406,7 @@
             key: 'ev:' + payload.name,
             count: 1,
             timeText: paqolTimefmt.format(gameTime),
-            text: humanize(payload.name),
+            display: humanize(payload.name),
             hostile: false, location: null, planet_id: null
         });
     };

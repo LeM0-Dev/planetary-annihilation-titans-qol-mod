@@ -17,7 +17,7 @@ html, body {
     border: 1px solid rgba(120, 160, 190, 0.45);
     color: #cfe0ea;
     font-family: sans-serif;
-    font-size: 12px;
+    font-size: 16px;
     overflow: hidden;
 }
 
@@ -87,8 +87,8 @@ html, body {
 .paqol-row {
     display: flex;
     align-items: center;
-    padding: 2px 6px;
-    line-height: 18px;
+    padding: 3px 6px;
+    line-height: 28px;
     white-space: nowrap;
     border-bottom: 1px solid rgba(120, 160, 190, 0.12);
 }
@@ -99,9 +99,9 @@ html, body {
 
 .paqol-row-icon,
 .paqol-row-sicon {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
+    width: 28px;
+    height: 28px;
+    margin-right: 6px;
     flex-shrink: 0;
 }
 
