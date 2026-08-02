@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 — 2026-08-02
+
+- Added the mod icon (shown in the Community Mods manager).
+
 ## 0.4.1 — 2026-08-02
 
 - Fixed the player's own units being prefixed "Allied" in the notification

@@ -13,7 +13,7 @@
   "identifier": "com.lem0.pat-qol",
   "signature": " ",
   "titansOnly": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.lem0.pat-qol/core/ns.js",
@@ -61,5 +61,6 @@
       "coui://ui/mods/com.lem0.pat-qol/features/settings_tab/feature.js",
       "coui://ui/mods/com.lem0.pat-qol/scenes/settings.boot.js"
     ]
-  }
+  },
+  "icon": "https://raw.githubusercontent.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/main/docs/img/logo300x300.png"
 }
