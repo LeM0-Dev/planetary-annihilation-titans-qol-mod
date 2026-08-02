@@ -24,13 +24,17 @@
         init: function () {
             var prefs = paqol.store.get('prefs') || {};
 
+            // Default layout: a left-edge column — history on top, targets in
+            // the middle, own&allied at the bottom — sized to fit a 1080p
+            // screen; larger monitors get the same proportions and the
+            // geometry clamp handles smaller ones.
             var WINDOWS = [];
             if (prefs.historyEnabled !== false)
-                WINDOWS.push({ name: 'paqol_history', def: { left: 8, top: 220, width: 340, height: 300 } });
+                WINDOWS.push({ name: 'paqol_history', def: { left: 16, top: 120, width: 480, height: 300 } });
             if (prefs.hvtEnabled !== false)
-                WINDOWS.push({ name: 'paqol_hvt', def: { left: 8, top: 540, width: 300, height: 220 } });
+                WINDOWS.push({ name: 'paqol_hvt', def: { left: 16, top: 432, width: 400, height: 260 } });
             if (prefs.unitsEnabled !== false)
-                WINDOWS.push({ name: 'paqol_units', def: { left: 360, top: 220, width: 300, height: 260 } });
+                WINDOWS.push({ name: 'paqol_units', def: { left: 16, top: 704, width: 400, height: 280 } });
 
             if (!WINDOWS.length) {
                 paqol.log.info('both QoL windows are disabled in settings.');

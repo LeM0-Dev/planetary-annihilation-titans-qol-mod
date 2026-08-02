@@ -15,7 +15,8 @@ zip -r -X -q "$OUT" modinfo.json LICENSE.md ui
 
 unzip -Z1 "$OUT" | grep -qx 'modinfo.json' \
   || { echo 'FAIL: modinfo.json is not at ZIP root'; exit 1; }
-if unzip -Z1 "$OUT" | grep -q '[A-Z]'; then
+# LICENSE.md is a doc, exempt from the lowercase rule (PA never resolves it)
+if unzip -Z1 "$OUT" | grep -v '^LICENSE\.md$' | grep -q '[A-Z]'; then
   echo 'FAIL: uppercase path in archive'; exit 1
 fi
 
