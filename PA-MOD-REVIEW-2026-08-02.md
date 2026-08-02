@@ -60,6 +60,7 @@ No blockers, bugs, concerns, or compliance issues across 58 files; one managed M
 - **Bug (was BUG-001):** roster resolved by array position where the engine supplies an army index — misattributed players when observer/replay armies were present (replay viewing). Fixed with a `rosterByIndex` map keyed on the engine index; both call sites resolve through it.
 - **Code Quality:** dead `model.rows` shell computed for the units role — deleted after verifying `rows` is only bound inside the history/hvt `ko if` blocks.
 - **Code Quality:** combat expiry as a side effect inside `ownRows` — moved to a dedicated 5-second `expireCombats` sweep; both computeds are pure.
+- **Bug (screenshot-found):** the player's OWN units were prefixed "Allied" in history — the engine sets `is_allied` on own units too. Fixed via `player_data.army_index` (verified against live_game.js:815-880: it indexes the same unfiltered array `ids` is plucked from); own units now render unprefixed.
 - **Earlier the same day:** cache bounding-invariant comments; polls paused while minimized; shadow drift gate + rebuild tooling (see MNT-001).
 
 ### Notes for the record (not findings)
