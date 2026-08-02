@@ -73,7 +73,7 @@ jobs:
           NOTES=$(printf '%s\n\n---\n**Downloads**: `com.lem0.pat-qol-%s.zip` is this release; `com.lem0.pat-qol.zip` is the same file under a stable name so `releases/latest/download/com.lem0.pat-qol.zip` always serves the newest version.' "$NOTES" "$V")
           gh release create "v$V" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "PA QoL v$V" \
+            --title "PA:T QoL v$V" \
             --notes "$NOTES" \
             --latest \
             "dist/com.lem0.pat-qol-$V.zip" \
