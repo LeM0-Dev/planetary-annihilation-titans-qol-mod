@@ -50,19 +50,9 @@
     var armyName = {};
     var armyColor = {};
 
-    // Local ping-mode state, pushed by the host: the engine strips the
-    // sender from ping alerts (army_id -1), but ownerless pings arriving
-    // while YOU are in ping command mode are labelled "You". Clicking a ping
-    // usually exits the mode instantly while the alert arrives a few hundred
-    // ms later, so leaving the mode keeps a grace window open.
-    var PING_GRACE_MS = 2000;
-    var localPingMode = false;
-    var localPingUntil = 0;
-    var localArmyId = null;
-
-    function localPingLikely() {
-        return localPingMode || _.now() < localPingUntil;
-    }
+    // NOTE: the engine strips the sender from ping alerts (army_id -1), so
+    // pings render unattributed. The name path below only fires if a client
+    // ever receives a real army_id on a ping (untested in multiplayer).
 
     // ------------------------------------------------------------------ model
     model.role = role;
@@ -154,17 +144,10 @@
         var color = null;
         if (alert.custom) text = alert.name ? String(alert.name) : 'Alert';
         else if (wtName === 'ping') {
-            // attribute the ping to its sender, in their army colour
+            // attribute the ping to its sender when the engine provides one
             var pinger = armyName[alert.army_id];
-            if (pinger) {
-                text = 'Ping — ' + pinger;
-                color = armyColor[alert.army_id] || null;
-            } else if (localPingLikely()) {
-                text = 'Ping — You';
-                color = (localArmyId !== null && armyColor[localArmyId]) || null;
-            } else {
-                text = 'Ping';
-            }
+            text = pinger ? 'Ping — ' + pinger : 'Ping';
+            color = pinger ? (armyColor[alert.army_id] || null) : null;
         }
         else if (template) text = template.replace('__name__', name);
         else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
@@ -290,14 +273,6 @@
             text: humanize(payload.name),
             hostile: false, location: null, planet_id: null
         });
-    };
-
-    handlers.paqol_local_ping_mode = function (payload) {
-        var active = !!(payload && payload.active);
-        if (!active && localPingMode) localPingUntil = _.now() + PING_GRACE_MS;
-        localPingMode = active;
-        if (payload && payload.armyId !== undefined && payload.armyId !== null)
-            localArmyId = payload.armyId;
     };
 
     handlers.paqol_state = function (payload) {

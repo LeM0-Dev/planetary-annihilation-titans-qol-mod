@@ -8,6 +8,7 @@ var paqolHvt = (function () {
     // Bit indices verified against live_game/js/constants.js (build 124667).
     var BITS = {
         Commander: 0,
+        SupportCommander: 1, // Colonel
         Teleporter: 10,
         Nuke: 17,
         NukeDefense: 18,
@@ -31,24 +32,35 @@ var paqolHvt = (function () {
     // block but is tagged LaserPlatform, not Teleporter — belt and braces).
     var CATEGORIES = [
         { key: 'commander', bit: BITS.Commander, label: '!LOC:Commander', rank: 0 },
-        { key: 'titan', bit: BITS.Titan, label: '!LOC:Titan', rank: 1 },
-        { key: 'nuke', bit: BITS.Nuke, label: '!LOC:Nuke Launcher', rank: 2 },
-        { key: 'antinuke', bit: BITS.NukeDefense, label: '!LOC:Anti-Nuke', rank: 3 },
-        { key: 'catalyst', bit: BITS.ControlModule, label: '!LOC:Catalyst', rank: 5 },
-        { key: 'halley', bit: BITS.PlanetEngine, label: '!LOC:Halley', rank: 6 },
-        { key: 'teleporter', bit: BITS.Teleporter, label: '!LOC:Teleporter', rank: 7 }
+        { key: 'colonel', bit: BITS.SupportCommander, label: '!LOC:Colonel', rank: 1 },
+        { key: 'titan', bit: BITS.Titan, label: '!LOC:Titan', rank: 2 },
+        { key: 'nuke', bit: BITS.Nuke, label: '!LOC:Nuke Launcher', rank: 3 },
+        { key: 'antinuke', bit: BITS.NukeDefense, label: '!LOC:Anti-Nuke', rank: 4 },
+        { key: 'catalyst', bit: BITS.ControlModule, label: '!LOC:Catalyst', rank: 6 },
+        { key: 'halley', bit: BITS.PlanetEngine, label: '!LOC:Halley', rank: 7 },
+        { key: 'teleporter', bit: BITS.Teleporter, label: '!LOC:Teleporter', rank: 8 }
     ];
 
-    // The unit cannon has no dedicated unit_type bit; the base game itself
-    // path-matches the spec id (live_game_unit_alert.js:469). We do the same.
-    var UNIT_CANNON = { key: 'unit_cannon', label: '!LOC:Unit Cannon', rank: 4 };
+    // No dedicated unit_type bit exists for these; the base game itself
+    // path-matches spec ids (live_game_unit_alert.js:469 for the unit
+    // cannon). The Angel (support_platform) only carries generic tags.
+    var PATH_CATEGORIES = [
+        { re: /unit_cannon/, key: 'unit_cannon', label: '!LOC:Unit Cannon', rank: 5 },
+        { re: /support_platform/, key: 'angel', label: '!LOC:Angel', rank: 9 }
+    ];
 
     function classify(unitTypes, specId) {
-        if (typeof specId === 'string' && /unit_cannon/.test(specId))
-            return { key: UNIT_CANNON.key, label: UNIT_CANNON.label, rank: UNIT_CANNON.rank };
+        var i;
+        if (typeof specId === 'string') {
+            for (i = 0; i < PATH_CATEGORIES.length; i++) {
+                var p = PATH_CATEGORIES[i];
+                if (p.re.test(specId))
+                    return { key: p.key, label: p.label, rank: p.rank };
+            }
+        }
         if (!unitTypes || typeof unitTypes.length !== 'number' || unitTypes.length < 4)
             return null;
-        for (var i = 0; i < CATEGORIES.length; i++) {
+        for (i = 0; i < CATEGORIES.length; i++) {
             var c = CATEGORIES[i];
             if (isType(c.bit, unitTypes))
                 return { key: c.key, label: c.label, rank: c.rank };
