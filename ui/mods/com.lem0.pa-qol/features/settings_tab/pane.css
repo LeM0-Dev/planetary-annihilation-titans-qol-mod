@@ -3,8 +3,12 @@
     color: #cfe0ea;
     /* The stock panes inherit scrolling from scene-specific ancestor rules
        (#main .content .option-list); ours scrolls itself so it works both
-       from the main menu and embedded in-game. */
-    display: block !important;
+       from the main menu and embedded in-game.
+       NO !important on display: knockout's visible binding hides this pane
+       with an INLINE display:none on other tabs, and !important would beat
+       it — that bug shipped once. Plain `block` still overrides the stock
+       .option-list flex because mod CSS loads after settings.css. */
+    display: block;
     overflow-y: auto !important;
     overflow-x: hidden;
     max-height: 72vh;
