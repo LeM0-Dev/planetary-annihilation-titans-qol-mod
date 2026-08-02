@@ -10,12 +10,17 @@ if [ -L "$DEST" ]; then
     rm "$DEST"
 fi
 
-# Bump the patch version once per PUSH CYCLE, not per reinstall: if the local
-# version still equals the version on origin/main, this is the first change
-# since the last push -> bump. Later reinstalls before the next push reuse it.
+# Version policy:
+#  - on staging (or any non-main branch): NEVER bump — the version moves once,
+#    via tools/promote.sh, when staging is PR'd onto main.
+#  - directly on main: bump once per push cycle (first change since the last
+#    push); later reinstalls before the next push reuse the number.
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 LOCAL_V=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')
 REMOTE_V=$(git show origin/main:modinfo.json 2>/dev/null | node -p 'JSON.parse(require("fs").readFileSync(0,"utf8")).version' 2>/dev/null || echo "")
-if [ -n "$REMOTE_V" ] && [ "$LOCAL_V" != "$REMOTE_V" ]; then
+if [ "$BRANCH" != "main" ]; then
+    echo "on branch '$BRANCH': version stays $LOCAL_V (bumped by tools/promote.sh on release)"
+elif [ -n "$REMOTE_V" ] && [ "$LOCAL_V" != "$REMOTE_V" ]; then
     echo "version already bumped this push cycle ($LOCAL_V, origin has $REMOTE_V)"
 else
 node -e '
