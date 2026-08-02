@@ -113,6 +113,10 @@ every change.
 
 ## Development
 
+**Branches**: day-to-day work and all contributions land on `staging` —
+open pull requests against `staging`, not `main`. `main` is the release
+branch: merging `staging` into it publishes a GitHub release automatically.
+
 ```sh
 npm install        # dev tooling only; nothing here ships
 npm run check      # eslint (ES5 over ui/mods/**) + node --test + release gate
