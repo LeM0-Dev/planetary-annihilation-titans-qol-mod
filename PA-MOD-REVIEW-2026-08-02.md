@@ -1,6 +1,7 @@
 # Mod Review — PA:T QoL
 
-**Verdict: Loads cleanly.** (Initially: one conditional Bug + two Code Quality notes — all three verified and fixed the same day; details below with fixes marked Done.)
+**Verdict: Loads cleanly.**
+No blockers, bugs, concerns, or compliance issues across 58 files; one managed Maintenance Risk.
 
 | | |
 |---|---|
@@ -10,41 +11,18 @@
 | Files reviewed | 58 |
 | Base-game files shadowed | 1 |
 | Base game | `/mnt/nvme-2-4tb/SteamLibrary/steamapps/common/Planetary Annihilation Titans/media` (`--media`) |
-| Reviewed | 2026-08-02 (second full review; post-fix pass confirmed BUG-001/QUA-001/QUA-002 resolved — CLI verdict Loads cleanly, only the permanent shadow note remains) |
+| Reviewed | 2026-08-02 |
 
 ## Summary
 
 | Severity | Count |
 |---|---|
-| Bug | 1 |
 | Maintenance Risk | 1 |
-| Code Quality | 2 |
 | Unverified | 3 |
 
 | ID | Severity | Location | Finding |
 |---|---|---|---|
-| BUG-001 | Bug | `ui/mods/com.lem0.pat-qol/panels/window.js:476,576` | Roster looked up by array position where the engine supplies an army index — misaligns when observer/replay armies are present |
-| MNT-001 | Maintenance Risk | `ui/main/game/live_game/js/audio.js` | Whole-file base shadow; drift after a PA patch (mechanically gated) |
-| QUA-001 | Code Quality | `ui/mods/com.lem0.pat-qol/panels/window.js` (~line 660) | Dead `model.rows` shell computed for the units role |
-| QUA-002 | Code Quality | `ui/mods/com.lem0.pat-qol/panels/window.js` (`ownRows`) | Combat expiry is a side effect inside a `ko.computed`, and only on the OWN path |
-
-## Bug
-
-> Loads, but does not behave as intended.
-
-### BUG-001 — `roster[ent.army_idx]` / `roster[st.army]` index by array position, not army index
-
-**Location:** `ui/mods/com.lem0.pat-qol/panels/window.js:476` (`handlers.combat_list`) and `:576` (`refreshCommanderState`)
-
-**Found:** The engine reports armies by **index into the sim's army list** (`damaged_entities[].army_idx`, `getUnitState().army`). The page resolves these with `roster[n]` — positional access into the forwarded roster array. But the host's `buildRosterPayload` **skips `p.replay` entries** while building that array, so whenever `model.players()` contains an observer/replay army, every roster position after it is shifted one left relative to the engine's indices.
-
-**Why it matters:** Verified in three steps: (1) the skip-vs-positional mismatch is certain in code; (2) engine army indices equal full-array positions — proven live (`getUnitState().army` 1/2 matched `players()[1]`/`[2]`) and by the base game passing raw loop position as the army index into the same API; (3) `replay: true` armies occur in real payloads — the base client normalises the flag and guards game-over on `(armyCount - replayArmyCount) <= 0`, which only makes sense if the engine sends them; server-script only ever writes `false`, so the true case is engine-side **replay viewing**. When it fires, combat rows and commander state resolve to the *wrong player* from the first skipped entry onward, silently. Scope correction from initial draft: live MP spectators are NOT armies and cause no shift — the manifesting context is watching replays (plus any future observer support the base-game dev comment anticipates). Each roster entry already carries the correct engine index in its `index` field; only the lookups are positional.
-
-**Fix:** Done — `handlers.paqol_roster` builds a `rosterByIndex` map keyed on each entry's engine `index` field; both call sites resolve through it. Positional indexing of the roster is gone (and commented as forbidden).
-
-<sub>`js.index-vs-position`</sub>
-
----
+| MNT-001 | Maintenance Risk | `ui/main/game/live_game/js/audio.js` | Whole-file base shadow; PA's future changes to it are reverted until re-synced (mechanically gated) |
 
 ## Maintenance Risk
 
@@ -56,47 +34,17 @@
 
 **Found:** A copy of the base-game file (base md5 `64c22eb2…`, build 124667) differing by exactly a header comment and two anchored edits: `priority_level_cooldown` (vanilla `30 * 1000`) reads `paqol.audioDecayMs` lazily, defaulting to 3000 with a safe fallback if the mod's JS never runs.
 
-**Why it matters:** Any future PA change to this file is silently reverted for the mod's users until the shadow is re-synced. The CLI labels this *avoidable Code Quality* ("the base file assigns functions to `self`"); that is a file-level heuristic and wrong for this change — the modified member and the timer consuming it are closure-private with no interception point, which is this skill's stated criterion for Maintenance Risk. This finding is permanent by design: it exists as long as the shadow does, which is as long as the feature does.
+**Why it matters:** Any future PA change to this file is silently reverted for the mod's users until the shadow is re-synced. This finding is permanent by design — it exists as long as the shadow does, which is as long as the feature does. (The CLI labels it *avoidable Code Quality* because the base file exposes `self.*` functions; that file-level heuristic is wrong for this change — the modified member and its consuming timer are closure-private with no interception point, which is this skill's stated criterion for Maintenance Risk.)
 
-**Fix:** Already managed mechanically: `tools/check-modinfo.mjs` (every check/package/release) md5-verifies the installed base file against the recorded fingerprint and fails on mismatch; `tools/rebuild-audio-shadow.sh` regenerates the shadow from the current base file via anchored replacement, failing loudly if PA restructures the file, and re-syncs the fingerprint. Round-trip verified. Residual exposure: a PA restructure large enough to break the anchors — which the gate surfaces rather than hides.
+**Fix:** Managed mechanically: `tools/check-modinfo.mjs` (every check/package/release) md5-verifies the installed base file against the recorded fingerprint and fails on mismatch; `tools/rebuild-audio-shadow.sh` regenerates the shadow from the current base file via anchored replacement — failing loudly if PA restructures the file — and re-syncs the fingerprint. Round-trip verified: the regenerated shadow differs from base by exactly the header and the two anchored edits. Residual exposure: a PA restructure large enough to break the anchors, which the gate surfaces rather than hides.
 
 <sub>`shadow.unavoidable-closure` (reclassified from CLI `shadow.avoidable-js`)</sub>
 
 ---
 
-## Code Quality
-
-> Performance or general improvement.
-
-### QUA-001 — Dead `model.rows` shell for the units role
-
-**Location:** `ui/mods/com.lem0.pat-qol/panels/window.js` (`model.rows = ko.computed(... return []; ...) // unused shell`)
-
-**Found:** The `paqol_units` role defines a `model.rows` computed returning an empty array, marked "unused shell". The units template binds only `ownRows`/`alliedRows`; nothing reads `rows` for this role.
-
-**Why it matters:** Harmless at runtime, but it subscribes to `rev`/`tick` and re-evaluates on every update for nothing, and "unused shell" comments are exactly the leftovers that confuse the next reader.
-
-**Fix:** Done — verified first that `rows` is only bound inside the history/hvt `ko if` blocks (never evaluated for the units role), then deleted the shell.
-
-<sub>`js.dead-code`</sub>
-
-### QUA-002 — Combat expiry is a side effect inside a `ko.computed`, and only on the OWN path
-
-**Location:** `ui/mods/com.lem0.pat-qol/panels/window.js` (`model.ownRows`)
-
-**Found:** Expired combats are deleted from the `combats` map inside the `ownRows` computed; `alliedRows` performs no expiry.
-
-**Why it matters:** It works today because the template evaluates `ownRows` first and both computeds share the `rev`/`tick` dependencies — but mutating state inside a computed is a Knockout anti-pattern, and an allied-only combat's expiry currently depends on the OWN section also re-rendering. Reordering the template or splitting the sections would quietly break expiry.
-
-**Fix:** Done — expiry moved to a dedicated 5-second `expireCombats` sweep that bumps `rev`; both computeds are pure and evaluation order no longer matters.
-
-<sub>`ko.computed-side-effect`</sub>
-
----
-
 ## Unverified — needs clarification
 
-- **Units-window paths not yet observed in-game:** combat rows appearing/expiring, the reworked idle-factory clearing (state re-poll), white ping rows, and the minimized-poll pause were all implemented after the last live session ended. All pass lint/tests/gate; none has been eyeballed in a running game yet.
+- **Units-window paths not yet observed in-game:** combat rows appearing/expiring, idle-factory clearing via state re-poll, white ping rows, minimized-poll pause, and the `rosterByIndex` fix were implemented after the last live session ended. All pass lint/tests/gate; none has been eyeballed in a running game yet.
 - **Human-vs-human multiplayer:** allied `getArmyUnits`/commander rows were verified against GW co-op AI allies only; the one-time human-MP checks are itemised in `docs/manual-test-checklist.md`.
 - **`modinfo.forum`** points at the repository's `/discussions` URL — fine if GitHub Discussions is enabled for the repo, a 404 otherwise. Not statically checkable from here.
 
@@ -107,10 +55,18 @@
 - Unreferenced-file detection: cross-checked by both the CLI pass and the mod's own release gate (scene refs + `.html`-loaded scripts); no orphans.
 - Runtime behaviour is testing, not static review; most features were exercised live against build 124667 via the Coherent debugger during development, except the items listed under Unverified.
 
+### Findings resolved during this review cycle (same day, verified fixed)
+
+- **Bug (was BUG-001):** roster resolved by array position where the engine supplies an army index — misattributed players when observer/replay armies were present (replay viewing). Fixed with a `rosterByIndex` map keyed on the engine index; both call sites resolve through it.
+- **Code Quality:** dead `model.rows` shell computed for the units role — deleted after verifying `rows` is only bound inside the history/hvt `ko if` blocks.
+- **Code Quality:** combat expiry as a side effect inside `ownRows` — moved to a dedicated 5-second `expireCombats` sweep; both computeds are pure.
+- **Earlier the same day:** cache bounding-invariant comments; polls paused while minimized; shadow drift gate + rebuild tooling (see MNT-001).
+
 ### Notes for the record (not findings)
 
-- Both Code Quality findings from the earlier same-day review (cache bounding, poll fan-out) were fixed and are not re-raised; this review's QUA items are new.
-- Identifier triangle intact; Chrome-40 rules mechanically enforced (zero violations); licence ships in the ZIP with PA Inc. attribution; packaging gate verifies ZIP-root `modinfo.json`, case-exactness and the shadow fingerprint.
+- Identifier triangle intact; Chrome-40 rules mechanically enforced (zero violations).
+- Licence ships in the release ZIP with PA Inc. attribution for the shadowed file and game content.
+- Packaging gate verifies ZIP-root `modinfo.json`, case-exactness, orphans, and the shadow fingerprint.
 
 ---
 
