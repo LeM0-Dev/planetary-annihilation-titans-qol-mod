@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-08-02
+
+- Fixed the player's own units being prefixed "Allied" in the notification
+  history (the engine flags own units as allied; rows for your own units now
+  render unprefixed).
+- Refreshed README screenshots showing all three windows.
+
 ## 0.4.0 — 2026-08-02
 
 Row presentation overhaul for both in-game windows:
