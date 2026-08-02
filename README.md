@@ -32,6 +32,15 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   anti-nukes, unit cannons, Catalysts, Halleys and teleporters — each
   category individually toggleable. Click to jump there. Entries disappear on
   confirmed kill and dim when the sighting is stale.
+- **Own & Allied** — a third window with OWN and ALLIED sections: your
+  commander(s) always listed (tagged `[IDLE]` when they have no orders),
+  units in combat, and idle factories that clear themselves once given work.
+  Click to jump.
+
+Rows in all windows carry the unit's build icon plus its orbit-style
+strategic icon tinted in the owner's army colour (dark colours brightened
+for readability), the unit's real in-game name, and a right-aligned game
+timestamp. Right-click any row to dismiss it.
 
 Configure everything under **Settings → PA:T QOL** (works from the main menu
 and in-game). Window layout changes apply at the start of the next game.
@@ -100,7 +109,8 @@ targets, and the voice priority controls:
    game. Mods mount at startup.
 
 4. Configure under **Settings → PA:T QOL** — notification voice priorities and
-   the two in-game windows (notification history, enemy targets).
+   the three in-game windows (notification history, enemy targets,
+   own & allied units).
 
 To update: replace the folder contents with the new ZIP and restart. To
 uninstall: disable in Community Mods or delete the folder. All settings live

@@ -61,22 +61,35 @@ by `features/qol_windows/host.js` and bound with `api.Panel.bindElement`.
 ## Data flow
 
 ```
-engine broadcasts                    panels/window.html × 2
-(watch_list / custom_alert / time /  ('paqol_history', 'paqol_hvt' — role from
- player_data go to EVERY view         api.Panel.pageName; content, rows,
- declaring the handler in             camera-jump live here; roster also
- api.Panel.ready)             ──────▶ PULLED once at boot — the first
-                                      player_data broadcast races page load)
-                                              ▲ 'paqol_event', 'paqol_state'
-live_game (features/qol_windows/host.js)      │
+engine broadcasts                    panels/window.html × 3
+(watch_list / custom_alert / time /  (roles from api.Panel.pageName:
+ combat_list / player_data go to      'paqol_history', 'paqol_hvt',
+ EVERY view declaring the handler     'paqol_units' — content, rows,
+ in api.Panel.ready)          ──────▶ camera-jump live here; roster and
+                                      player_data also PULLED once at boot —
+                                      the first broadcasts race page load)
+                                              ▲ 'paqol_event', 'paqol_state',
+live_game (features/qol_windows/host.js)      │ 'paqol_roster'
   creates the <panel> elements ───────────────┘
   owns geometry: drag/resize/minimize/persist/clamp
   forwards derived events (nuke_ready, ...) from its
     processExternalUnitEvent wrap
+  forwards a slim roster: alliances ('self'/'allied_eco' → own/allied),
+    ENGINE army indices, and the planet index→id map (they differ!)
+  ONE setupWatchList wrap widens sight/death lists for enabled target
+    categories AND repopulates the idle list (ships empty) with Factory
   child streams cursor coords via handlers['panel.invoke']
     (model.paqolWinDragStart/Move/End, ResizeStart/Move/End, ToggleMin);
     host also tracks its own mousemove for when the cursor
     escapes the small child view onto the holodeck
+
+paqol_units additionally polls the worldview API (own+allied armies,
+PER PLANET — planetIndex -1 returns nothing): getArmyUnits keys are spec
+ids (finds own commanders even where GW coop reports them null),
+getUnitState gives {army, planet, pos, orders, build_target} — pos is the
+jump location, no orders + no build_target = [IDLE]. Army references from
+the engine are INDICES — always resolved via rosterByIndex, never by
+array position (the host skips replay/observer entries).
 
 notify_priority (audio arbiter) is unchanged: wraps audioModel.processEvent
 in live_game AND live_game_unit_alert (two independent audio queues).

@@ -38,5 +38,13 @@ All paths relative to `<install>/media/`.
 | `ui/main/shared/js/api/panel.js:288` | `api.Panel.bindElement` / `bindPanels` | `<panel>` elements become engine views from JS; a dynamically appended element binds fine |
 | `ui/main/shared/js/api/panel.js:2` | `DEFAULT_UPDATE_PERIOD = 200` | Region poll rate; host calls `panel.update()` manually during drags |
 | `live_game.html` (structure) | 31 `<panel>` + `<holodeck>` elements | live_game's OWN pixels are never composited — mod UI must be a panel page |
-| engine message routing | `watch_list`/`custom_alert`/`time` | Broadcast to every view declaring the handler in `api.Panel.ready` (time_bar + unit_alert both declare watch_list); our window pages rely on this |
+| engine message routing | `watch_list`/`custom_alert`/`time`/`combat_list`/`player_data` | Broadcast to every view declaring the handler in `api.Panel.ready` (time_bar + unit_alert both declare watch_list); our window pages rely on this |
+| `live_game/live_game_unit_alert.js:884-906` | combat payload | `{id, planet_id, last_location, average_location, lifespan, last_event_time, damaged_entities[].army_idx}` — the units window's combat rows |
+| `ui/main/shared/js/api/worldview.js:15-32` | `getArmyUnits(armyIndex, planetIndex)` | Army-INDEX based and must be queried PER PLANET — `planetIndex -1` returns nothing (verified live). Result keyed by (possibly tagged) spec id |
+| verified live, engine binding | `getUnitState(ids)` | Returns `{army (index), planet (index), pos:[x,y,z], orders, build_target, unit_spec}`; empty orders + no build_target = idle |
+| `live_game/live_game.js:875-895` | `player_data` broadcast + `model.playerData` | `{ids, names, colors}` broadcast on CHANGE (races page load — pull once at boot); alliances/army indices are NOT in it, hence the host's `paqol_roster` |
+| `live_game/live_game.js:4594-4633` | `model.players()` / `stateToPlayer` | Values seen live: `'self'`, `'allied'`, `'allied_eco'`, `'hostile'`; entries may carry `replay: true` (replay viewing) — engine army indices count them, so never index a filtered roster positionally |
+| planet identity | `planetListState().planets[].index` vs `.id` | DIFFERENT numbers (index 2 = id 54939 observed); worldview/unit state speak indices, camera targets need ids |
+| `live_game/live_game.js:2699` | `watchlist.setIdleAlertTypes` | Ships EMPTY ("disabled until the alert ui can be cleaned up") — the host repopulates it with `Factory` for idle-factory rows |
+| `live_game/live_game.js:4368-4381` | `siconFor` / `sicon_override` | Strategic icon name = spec FILENAME stem unless `sicon_override`; the atlas PNGs encode yellow = army-colour fill, red = glyph drawn black — reproduced with an SVG feColorMatrix |
 | watch payload fields | alert shape | `{id, watch_type, spec_id, planet_id, location, army_id, is_hostile, is_allied, unit_types}` |

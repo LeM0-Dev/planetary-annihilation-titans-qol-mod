@@ -53,6 +53,25 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 18. Click an entry → camera jumps. Mousewheel over either window scrolls the
     list and does NOT zoom the game camera.
 
+## D2. Own & Allied window
+
+18a. Your commander is ALWAYS listed under OWN, named "[you] Commander" in
+     your army colour, and cannot be right-click dismissed. With no orders
+     it reads `[IDLE]`; give it any order → the tag clears within ~5 s.
+18b. Allied commanders appear under ALLIED with their players' colours;
+     click → camera jumps to the commander (correct planet in multi-planet
+     systems — planet ids, not indices).
+18c. Get units into a fight → an "In combat" row appears under OWN with the
+     fight's game time; it expires on its own after the fight ends.
+18d. Let a factory go idle → an idle row appears; give it something to
+     build → the row clears within ~3 s; killing the factory also clears it.
+18e. Right-click a combat or idle row → just that row disappears.
+18f. Minimize the window → the worldview polling stops (no getArmyUnits
+     traffic in the debugger); restore → rows refresh.
+18g. Rows show build icon + army-coloured strategic icon; dark army colours
+     (purple/navy) render brightened and readable.
+18h. Pings in the history are plain white "Ping" rows, never merged.
+
 ## E. Notification priority
 
 19. Disable "Commander under attack" → no voice line; the visual alert still

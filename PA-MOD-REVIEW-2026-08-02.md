@@ -6,7 +6,7 @@ No blockers, bugs, concerns, or compliance issues across 58 files; one managed M
 | | |
 |---|---|
 | Identifier | `com.lem0.pat-qol` |
-| Version | 0.4.0 (unreleased working tree, staging) |
+| Version | 0.4.0 (released 2026-08-02) |
 | Context | client |
 | Files reviewed | 58 |
 | Base-game files shadowed | 1 |
