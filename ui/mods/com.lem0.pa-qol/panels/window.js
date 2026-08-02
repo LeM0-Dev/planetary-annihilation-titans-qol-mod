@@ -50,6 +50,12 @@
     var armyName = {};
     var armyColor = {};
 
+    // Local ping-mode state, pushed by the host: the engine strips the
+    // sender from ping alerts (army_id -1), but ownerless pings arriving
+    // while YOU are in ping command mode are labelled "You".
+    var localPingMode = false;
+    var localArmyId = null;
+
     // ------------------------------------------------------------------ model
     model.role = role;
     model.title = ko.observable(role === 'paqol_history' ? 'Notification History' : 'Enemy Targets');
@@ -142,8 +148,15 @@
         else if (wtName === 'ping') {
             // attribute the ping to its sender, in their army colour
             var pinger = armyName[alert.army_id];
-            text = pinger ? 'Ping — ' + pinger : 'Ping';
-            color = armyColor[alert.army_id] || null;
+            if (pinger) {
+                text = 'Ping — ' + pinger;
+                color = armyColor[alert.army_id] || null;
+            } else if (localPingMode) {
+                text = 'Ping — You';
+                color = (localArmyId !== null && armyColor[localArmyId]) || null;
+            } else {
+                text = 'Ping';
+            }
         }
         else if (template) text = template.replace('__name__', name);
         else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
@@ -269,6 +282,12 @@
             text: humanize(payload.name),
             hostile: false, location: null, planet_id: null
         });
+    };
+
+    handlers.paqol_local_ping_mode = function (payload) {
+        localPingMode = !!(payload && payload.active);
+        if (payload && payload.armyId !== undefined && payload.armyId !== null)
+            localArmyId = payload.armyId;
     };
 
     handlers.paqol_state = function (payload) {

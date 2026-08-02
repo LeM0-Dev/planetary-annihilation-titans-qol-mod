@@ -203,6 +203,23 @@
                 });
             });
 
+            // ----------------------------------------- local ping ownership
+            // The engine sends ping alerts with army_id -1 (no sender), so a
+            // teammate's ping cannot be attributed client-side. What we CAN
+            // know is whether the LOCAL player is in ping command mode; the
+            // history window labels ownerless pings arriving during it as
+            // "You". Heuristic: an ally pinging in that same moment would be
+            // mislabeled — rare enough to accept.
+            if (model.mode && typeof model.mode.subscribe === 'function') {
+                var sendPingMode = function (m) {
+                    messageChild('paqol_history', 'paqol_local_ping_mode', {
+                        active: m === 'command_ping',
+                        armyId: (typeof model.armyId === 'function') ? model.armyId() : null
+                    });
+                };
+                model.mode.subscribe(sendPingMode);
+            }
+
             // ------------------------------------- derived event forwarding
             // nuke_ready / commander_destroyed / ... only exist as
             // processExternalUnitEvent calls inside live_game; forward the
