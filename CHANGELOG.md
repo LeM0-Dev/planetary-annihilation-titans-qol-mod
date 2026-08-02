@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.3.0 — 2026-08-02
+
+- **Angels and Colonels** join the enemy target window: Colonels
+  (support commanders) via their unit type, Angels (support platforms) by
+  spec match — grouped right under Commanders in the settings and in the
+  window's ordering, since some enemies field them in a commander-like role.
+  Both on by default, individually toggleable; saved settings migrate.
+- Ping rows render plain again — the short-lived "Ping — You" heuristic was
+  unreliable (the engine strips the sender from pings) and has been removed.
+- Release hygiene: releases now require a changelog section for the exact
+  version, and the version is set manually per release.
+
+## 0.2.14 — 2026-08-02
+
+- Ping rows in the notification history are attributed to their sender when
+  the engine provides one (it usually does not — pings arrive with no owner),
+  and the player roster is pulled at window load so attribution has data.
+- Fixed the first roster broadcast racing the window pages' registration.
+
+## 0.2.13 — 2026-08-02
+
+- Search box in the PA QOL settings tab: filters every row by keywords and
+  visible text; section headings match too.
+- Configurable voice **priority decay**: after a voice line plays, its
+  priority keeps suppressing lower-priority lines, stepping down one level
+  per interval. Vanilla hardcodes 30 s (a commander alarm could mute economy
+  lines for minutes); PA QoL defaults to 3 s, selectable up to the vanilla
+  30 s. (First and only whole-file shadow: `js/audio.js`, one marked change.)
+- Fixed the PA QOL settings pane appearing on every settings tab.
+- Per-category enemy target toggles (see 0.2.9) merged into the release.
+- `modinfo.json` carries the spec-mandated non-empty `signature`/`forum`.
+
+## 0.2.10 — 2026-08-02
+
+- Pings are never coalesced: two pings are two messages — each keeps its own
+  row, timestamp and camera-jump location.
+
+## 0.2.9 — 2026-08-02
+
+- Settings **Windows** section restructured: Notification history (enable +
+  length) and Target window (enable + a Targets sub-list with individual
+  toggles for commanders, Titans, nuke launchers, anti-nukes, unit cannons,
+  Catalysts, Halleys, teleporters). Engine watch lists widen only for the
+  enabled categories that need it.
+
+## 0.2.8 — 2026-08-02
+
+- Fixed mousewheel over the QoL windows zooming the game camera; the lists
+  scroll themselves now.
+- Fixed unreadable dark-on-dark text in the settings selectors.
+- Widened target tracking (teleporters/Catalysts/Halleys) on by default.
+
 ## 0.2.3 — 2026-08-02
 
 - Notification history de-spam: repeats of the same notification within 15 s

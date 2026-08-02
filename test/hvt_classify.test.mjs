@@ -40,6 +40,15 @@ test('unit cannon is matched by spec path (no dedicated bit)', () => {
     assert.equal(hvt.classify(bits(B.Titan), '/pa/units/land/unit_cannon/unit_cannon.json').key, 'unit_cannon');
 });
 
+test('colonel (SupportCommander bit) and angel (path match)', () => {
+    // Colonel: bot_support_commander carries SupportCommander, no Commander
+    assert.equal(hvt.classify(bits(B.SupportCommander), '/pa/units/land/bot_support_commander/bot_support_commander.json').key, 'colonel');
+    // Angel: support_platform has no HVT bit at all
+    assert.equal(hvt.classify(bits(), '/pa/units/air/support_platform/support_platform.json').key, 'angel');
+    // a real commander is never demoted to colonel
+    assert.equal(hvt.classify(bits(B.Commander, B.SupportCommander), '/pa/units/commanders/x/x.json').key, 'commander');
+});
+
 test('ControlModule=28 vs PlanetEngine=29 boundary', () => {
     assert.equal(hvt.classify(bits(28), 'x.json').key, 'catalyst');
     assert.equal(hvt.classify(bits(29), 'x.json').key, 'halley');
