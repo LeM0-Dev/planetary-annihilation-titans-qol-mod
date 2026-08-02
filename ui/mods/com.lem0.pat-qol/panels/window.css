@@ -97,10 +97,17 @@ html, body {
 .paqol-row.paqol-clickable:hover { background: rgba(80, 110, 135, 0.35); }
 .paqol-row.paqol-stale { opacity: 0.5; }
 
-.paqol-row-icon,
-.paqol-row-sicon {
+.paqol-row-icon {
     width: 28px;
     height: 28px;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+/* the orbit-style strategic icon reads better slightly larger */
+.paqol-row-sicon {
+    width: 36px;
+    height: 36px;
     margin-right: 6px;
     flex-shrink: 0;
 }
