@@ -33,6 +33,16 @@ console.log("version -> " + m.version);
 
 V=$(node -p 'JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version')
 
+# Releases without notes are how the changelog rotted once already: refuse to
+# promote unless CHANGELOG.md has a section for the version being released.
+if ! grep -q "^## $V " CHANGELOG.md; then
+    echo ""
+    echo "FAIL: CHANGELOG.md has no '## $V' section."
+    echo "Write the release notes first, commit them, then re-run promote."
+    git checkout -- modinfo.json ui/mods/com.lem0.pa-qol/core/ns.js
+    exit 1
+fi
+
 npm run check
 
 git add modinfo.json ui/mods/com.lem0.pa-qol/core/ns.js
