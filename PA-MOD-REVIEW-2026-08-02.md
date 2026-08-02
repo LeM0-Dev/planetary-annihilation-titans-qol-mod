@@ -41,7 +41,7 @@ No blockers; one Bug that only manifests in lobbies containing observer/replay a
 
 **Why it matters:** Verified in three steps: (1) the skip-vs-positional mismatch is certain in code; (2) engine army indices equal full-array positions — proven live (`getUnitState().army` 1/2 matched `players()[1]`/`[2]`) and by the base game passing raw loop position as the army index into the same API; (3) `replay: true` armies occur in real payloads — the base client normalises the flag and guards game-over on `(armyCount - replayArmyCount) <= 0`, which only makes sense if the engine sends them; server-script only ever writes `false`, so the true case is engine-side **replay viewing**. When it fires, combat rows and commander state resolve to the *wrong player* from the first skipped entry onward, silently. Scope correction from initial draft: live MP spectators are NOT armies and cause no shift — the manifesting context is watching replays (plus any future observer support the base-game dev comment anticipates). Each roster entry already carries the correct engine index in its `index` field; only the lookups are positional.
 
-**Fix:** Replace both positional accesses with a lookup by field — e.g. build a `rosterByIndex` map in `handlers.paqol_roster` and use `rosterByIndex[ent.army_idx]` / `rosterByIndex[st.army]`. Two call sites, one map.
+**Fix:** Done — `handlers.paqol_roster` builds a `rosterByIndex` map keyed on each entry's engine `index` field; both call sites resolve through it. Positional indexing of the roster is gone (and commented as forbidden).
 
 <sub>`js.index-vs-position`</sub>
 
@@ -77,7 +77,7 @@ No blockers; one Bug that only manifests in lobbies containing observer/replay a
 
 **Why it matters:** Harmless at runtime, but it subscribes to `rev`/`tick` and re-evaluates on every update for nothing, and "unused shell" comments are exactly the leftovers that confuse the next reader.
 
-**Fix:** Delete the computed for the units role.
+**Fix:** Done — verified first that `rows` is only bound inside the history/hvt `ko if` blocks (never evaluated for the units role), then deleted the shell.
 
 <sub>`js.dead-code`</sub>
 
@@ -89,7 +89,7 @@ No blockers; one Bug that only manifests in lobbies containing observer/replay a
 
 **Why it matters:** It works today because the template evaluates `ownRows` first and both computeds share the `rev`/`tick` dependencies — but mutating state inside a computed is a Knockout anti-pattern, and an allied-only combat's expiry currently depends on the OWN section also re-rendering. Reordering the template or splitting the sections would quietly break expiry.
 
-**Fix:** Move the expiry sweep into the 5-second tick (or a dedicated interval) and leave both computeds pure.
+**Fix:** Done — expiry moved to a dedicated 5-second `expireCombats` sweep that bumps `rev`; both computeds are pure and evaluation order no longer matters.
 
 <sub>`ko.computed-side-effect`</sub>
 

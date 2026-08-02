@@ -438,6 +438,10 @@
     // Commanders are found by polling the worldview API for own/allied
     // armies — the same call the base game makes for the player's own army.
     var roster = [];            // [{id,index,name,color,defeated,state}]
+    // Engine messages identify armies by INDEX into the sim's army list;
+    // the roster array may have gaps (the host skips replay/observer
+    // entries), so NEVER index it positionally — use this map.
+    var rosterByIndex = {};     // engine army index -> roster entry
     var planetCount = 0;        // worldview scans are per-planet
     var planetIdByIndex = {};   // camera targets need the ID, not the index
     var combats = {};           // id -> {group, location, planet_id, at}
@@ -453,6 +457,10 @@
     handlers.paqol_roster = function (payload) {
         if (!payload || !_.isArray(payload.roster)) return;
         roster = payload.roster;
+        rosterByIndex = {};
+        _.forEach(roster, function (r) {
+            if (r && typeof r.index === 'number') rosterByIndex[r.index] = r;
+        });
         if (typeof payload.planetCount === 'number') planetCount = payload.planetCount;
         if (_.isArray(payload.planets)) {
             planetIdByIndex = {};
@@ -473,7 +481,7 @@
             var group = null;
             _.forEach(c.damaged_entities || [], function (ent) {
                 if (!ent || group === 'own') return;
-                var r = roster[ent.army_idx];
+                var r = rosterByIndex[ent.army_idx];
                 if (r && (r.state === 'own' || (r.state === 'allied' && group === null)))
                     group = r.state;
             });
@@ -573,7 +581,7 @@
             var alive = {};
             _.forEach(states || [], function (st, i) {
                 if (!st || typeof st.army !== 'number') return;
-                var r = roster[st.army];
+                var r = rosterByIndex[st.army];
                 if (!r || r.state === 'hostile') return;
                 var id = ids[i];
                 alive[id] = true;
@@ -678,22 +686,27 @@
         return out;
     }
 
+    // Combat expiry lives on its own sweep (never as a side effect inside a
+    // computed — evaluation order between OWN/ALLIED must not matter).
+    function expireCombats() {
+        if (typeof gameTime !== 'number') return;
+        var changed = false;
+        _.forEach(combats, function (c, id) {
+            if (c.expires !== null && gameTime > c.expires) { delete combats[id]; changed = true; }
+        });
+        if (changed) rev(rev() + 1);
+    }
+
     if (role === 'paqol_units') {
-        model.rows = ko.computed(function () { rev(); tick(); return []; }); // unused shell
         model.ownRows = ko.computed(function () {
             rev(); tick();
-            // expire stale combats
-            if (typeof gameTime === 'number') {
-                _.forEach(combats, function (c, id) {
-                    if (c.expires !== null && gameTime > c.expires) delete combats[id];
-                });
-            }
             return unitsRowsFor('own');
         });
         model.alliedRows = ko.computed(function () {
             rev(); tick();
             return unitsRowsFor('allied');
         });
+        setInterval(expireCombats, 5000);
     }
 
     // --------------------------------------------------------------- handlers
