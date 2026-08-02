@@ -28,20 +28,22 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   cannons, Catalysts, Halleys (teleporters opt-in). Click to jump there.
   Entries disappear on confirmed kill and dim when the sighting is stale.
 
-Configure everything under **Settings → PA QOL** (works from the main menu
+Configure everything under **Settings → PA:T QOL** (works from the main menu
 and in-game). Window layout changes apply at the start of the next game.
 
 ## Screenshots
 
-The **PA QOL** settings tab — windows, per-notification voice priorities,
+The in-game windows — notification history with game-time stamps, coalesced
+repeats (×N) and clickable rows, and the enemy target list:
+
+![Notification history and enemy targets windows in-game](docs/img/notifications.png)
+
+The **PA:T QOL** settings tab — windows, per-notification voice priorities,
 maintenance actions:
 
 ![Settings — windows and commander/economy notification priorities](docs/img/settings1.png)
 
 ![Settings — combat/special weapons/celestial priorities and maintenance](docs/img/settings2.png)
-
-<!-- TODO: in-game screenshots of the notification history and enemy target
-     windows go here (docs/img/). -->
 
 ## Install (players)
 
@@ -90,7 +92,7 @@ maintenance actions:
    (click *reload filesystem mods* if it is not listed), then restart the
    game. Mods mount at startup.
 
-4. Configure under **Settings → PA QOL** — notification voice priorities and
+4. Configure under **Settings → PA:T QOL** — notification voice priorities and
    the two in-game windows (notification history, enemy targets).
 
 To update: replace the folder contents with the new ZIP and restart. To

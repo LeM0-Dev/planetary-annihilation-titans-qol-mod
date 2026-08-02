@@ -30,7 +30,7 @@
                 window.model && model.settingGroups && model.activeSettingsGroupIndex &&
                 $pills.length === 1 && $container.length === 1 &&
                 typeof window.loadHtml === 'function',
-                'settings scene layout not as expected; PA QoL tab not added.');
+                'settings scene layout not as expected; PA:T QoL tab not added.');
             if (!ok) {
                 // Never leave the screen stuck on our (now missing) tab.
                 if (window.model && model.activeSettingsGroupIndex &&

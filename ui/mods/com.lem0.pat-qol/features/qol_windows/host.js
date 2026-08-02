@@ -220,7 +220,7 @@
             // ------------------------------------------ widened watch lists
             // Teleporters/Catalysts/Halleys only generate sight alerts when
             // their unit types are added to the engine watch lists; widen for
-            // exactly the categories the user has enabled (Settings -> PA QOL
+            // exactly the categories the user has enabled (Settings -> PA:T QOL
             // -> Target window). The other categories are covered by the base
             // game's own lists already.
             var targets = prefs.hvtTargets || {};

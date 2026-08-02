@@ -66,7 +66,7 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 
 ## F. Settings
 
-26. Settings → "PA QOL" tab exists, opens, renders all groups; other tabs
+26. Settings → "PA:T QOL" tab exists, opens, renders all groups; other tabs
     unaffected.
 27. Change a notification toggle in the in-game settings panel → takes effect
     in the live game within ~2 s, no restart.
