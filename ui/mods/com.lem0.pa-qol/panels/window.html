@@ -26,7 +26,7 @@
                      data-bind="css: { 'paqol-clickable': !!$data.location, 'paqol-hostile': $data.hostile },
                                 click: function () { $root.jump($data); }">
                     <span class="paqol-row-time" data-bind="text: $data.timeText"></span>
-                    <span class="paqol-row-text" data-bind="text: $data.text"></span>
+                    <span class="paqol-row-text" data-bind="text: $data.display"></span>
                 </div>
                 <!-- /ko -->
                 <div class="paqol-row-more" data-bind="visible: hiddenCount() > 0">

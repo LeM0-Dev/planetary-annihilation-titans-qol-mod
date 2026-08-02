@@ -37,6 +37,15 @@ test('invalid caps fall back to a sane default', () => {
     assert.equal(huge.cap(), 5000);
 });
 
+test('remove deletes by identity and reports success', () => {
+    const r = ringMod.create(5);
+    const a = { k: 'a' }, b = { k: 'b' };
+    r.push(a); r.push(b);
+    assert.equal(r.remove(a), true);
+    assert.deepEqual(r.items(), [b]);
+    assert.equal(r.remove({ k: 'a' }), false); // identity, not equality
+});
+
 test('clear empties the buffer', () => {
     const r = ringMod.create(3);
     r.push(1);

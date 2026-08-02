@@ -70,11 +70,26 @@
         projectile: '__name__ launch detected',
         first_contact: 'Enemy contact',
         target_destroyed: '__name__ target destroyed',
-        allied_death: 'Allied __name__ lost',
+        allied_death: '__name__ lost',
         idle: '__name__ idle',
         arrival: '__name__ arrived',
         departure: '__name__ departing',
         linked: '__name__ linked'
+    };
+
+    // Derived events that duplicate a watch alert we already render with a
+    // better row (name + location). Rendering both spams two rows for one
+    // thing — e.g. 'enemy_commander_under_attack' plus the commander's own
+    // red damage alert. The alert row wins; these are dropped.
+    var SUPPRESSED_DERIVED = {
+        commander_under_attack: true,
+        allied_commander_under_attack: true,
+        enemy_commander_under_attack: true,
+        enemy_commander_sighted: true,
+        new_enemy_contact: true,
+        commander_destroyed: true,
+        allied_commander_destroyed: true,
+        enemy_commander_destroyed: true
     };
 
     if (role === 'paqol_history') {
@@ -88,7 +103,21 @@
         });
     }
 
+    // Battle anti-spam: a row repeating the same thing within this wall-clock
+    // window is coalesced into one fresh top row with a ×N counter instead of
+    // flooding the list.
+    var COALESCE_MS = 15000;
+    var lastByKey = {}; // key -> {row, at}
+
     function pushHistory(row) {
+        var prev = row.key && lastByKey[row.key];
+        var now = _.now();
+        if (prev && (now - prev.at) < COALESCE_MS) {
+            row.count = (prev.row.count || 1) + 1;
+            ring.remove(prev.row);
+        }
+        if (row.key) lastByKey[row.key] = { row: row, at: now };
+        row.display = row.count > 1 ? row.text + ' ×' + row.count : row.text;
         ring.push(row);
         rev(rev() + 1);
     }
@@ -96,15 +125,27 @@
     function historyRow(alert) {
         var wtName = watchNameById[alert.watch_type];
         var template = WATCH_VERBS[wtName];
+        var hostile = alert.is_hostile === true;
+        var allied = alert.is_allied === true && !hostile;
+        var name = specLabel(alert.spec_id);
+        if (hostile) name = 'Enemy ' + name;
+        else if (allied) name = 'Allied ' + name;
+
         var text;
         if (alert.custom) text = alert.name ? String(alert.name) : 'Alert';
-        else if (template) text = template.replace('__name__', specLabel(alert.spec_id));
-        else text = specLabel(alert.spec_id) + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
+        else if (template) text = template.replace('__name__', name);
+        else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
+
         var hasLocation = !!(alert.location && alert.planet_id !== undefined && alert.planet_id !== null);
+        var spec = /(.*\.json)/.exec(alert.spec_id || '');
         return {
+            key: alert.custom
+                ? 'custom:' + (alert.name || '')
+                : 'wt:' + alert.watch_type + ':' + (spec ? spec[1] : '') + ':' + (hostile ? 'h' : (allied ? 'a' : 'o')),
+            count: 1,
             timeText: paqolTimefmt.format(gameTime),
             text: text,
-            hostile: alert.is_hostile === true,
+            hostile: hostile,
             location: hasLocation ? alert.location : null,
             planet_id: hasLocation ? alert.planet_id : null
         };
@@ -190,7 +231,10 @@
     // Derived event notifications, forwarded by the live_game host.
     handlers.paqol_event = function (payload) {
         if (role !== 'paqol_history' || !payload || !payload.name) return;
+        if (SUPPRESSED_DERIVED[payload.name]) return; // alert twin renders instead
         pushHistory({
+            key: 'ev:' + payload.name,
+            count: 1,
             timeText: paqolTimefmt.format(gameTime),
             text: humanize(payload.name),
             hostile: false, location: null, planet_id: null

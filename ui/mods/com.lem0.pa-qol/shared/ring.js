@@ -17,6 +17,14 @@ var paqolRing = (function () {
                 if (items.length > capacity) items.length = capacity;
             },
             items: function () { return items; },       // newest first; treat as read-only
+            // Remove a specific item (identity match). Used when coalescing
+            // a repeat into a fresh top entry.
+            remove: function (item) {
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i] === item) { items.splice(i, 1); return true; }
+                }
+                return false;
+            },
             size: function () { return items.length; },
             cap: function () { return capacity; },
             setCap: function (c) {
