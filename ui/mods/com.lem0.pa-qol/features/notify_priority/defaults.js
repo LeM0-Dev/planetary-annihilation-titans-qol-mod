@@ -123,7 +123,7 @@
                 historyEnabled: true,
                 historyCap: 300,
                 hvtEnabled: true,
-                hvtWidenWatchlist: false,
+                hvtWidenWatchlist: true,
                 arbiterWindowMs: 3000
             },
             validate: function (d) {

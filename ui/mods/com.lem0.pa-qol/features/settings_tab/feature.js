@@ -73,7 +73,7 @@
                 self.historyEnabled = ko.observable(prefs.historyEnabled !== false);
                 self.historyCap = ko.observable(typeof prefs.historyCap === 'number' ? prefs.historyCap : 300);
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
-                self.hvtWidenWatchlist = ko.observable(prefs.hvtWidenWatchlist === true);
+                self.hvtWidenWatchlist = ko.observable(prefs.hvtWidenWatchlist !== false);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
                 self.capOptions = [100, 300, 500, 1000, 2000];
@@ -113,7 +113,7 @@
                     self.historyEnabled(true);
                     self.historyCap(300);
                     self.hvtEnabled(true);
-                    self.hvtWidenWatchlist(false);
+                    self.hvtWidenWatchlist(true);
                     self.arbiterWindowMs(3000);
                 };
 

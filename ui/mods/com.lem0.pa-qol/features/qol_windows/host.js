@@ -218,8 +218,10 @@
             }, 'model.processExternalUnitEvent');
 
             // ------------------------------------------ widened watch lists
-            // Opt-in: teleporters/Catalysts/Halleys generate sight alerts.
-            if (prefs.hvtWidenWatchlist === true && prefs.hvtEnabled !== false) {
+            // On by default: teleporters/Catalysts/Halleys generate sight
+            // alerts too. Disable in Settings -> PA QOL if the alert volume
+            // bothers you.
+            if (prefs.hvtWidenWatchlist !== false && prefs.hvtEnabled !== false) {
                 paqol.safeWrap(model, 'setupWatchList', function (callOriginal) {
                     var result = callOriginal();
                     if (window.engine && typeof engine.call === 'function') {
