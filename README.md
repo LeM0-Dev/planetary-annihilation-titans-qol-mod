@@ -42,12 +42,14 @@ repeats (×N) and clickable rows, and the enemy target list:
 
 ![Notification history and enemy targets windows in-game](docs/img/notifications.png)
 
-The **PA:T QOL** settings tab — windows, per-notification voice priorities,
-maintenance actions:
+The **PA:T QOL** settings tab — search, window toggles with per-category
+targets, and the voice priority controls:
 
-![Settings — windows and commander/economy notification priorities](docs/img/settings1.png)
+![Settings — search, windows, targets and commander priorities](docs/img/settings1.png)
 
-![Settings — combat/special weapons/celestial priorities and maintenance](docs/img/settings2.png)
+![Settings — economy/combat/special weapons/celestial priorities](docs/img/settings2.png)
+
+![Settings — bounties and maintenance actions](docs/img/settings3.png)
 
 ## Install (players)
 
