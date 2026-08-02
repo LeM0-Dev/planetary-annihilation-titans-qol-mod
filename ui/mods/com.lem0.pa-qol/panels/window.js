@@ -45,6 +45,11 @@
     if (window.constants && constants.watch_type)
         _.forEach(constants.watch_type, function (id, name) { watchNameById[id] = name; });
 
+    // army_id -> player name/color, from live_game's player_data broadcast
+    // (live_game.js:891 sends it to every child panel).
+    var armyName = {};
+    var armyColor = {};
+
     // ------------------------------------------------------------------ model
     model.role = role;
     model.title = ko.observable(role === 'paqol_history' ? 'Notification History' : 'Enemy Targets');
@@ -132,7 +137,14 @@
         else if (allied) name = 'Allied ' + name;
 
         var text;
+        var color = null;
         if (alert.custom) text = alert.name ? String(alert.name) : 'Alert';
+        else if (wtName === 'ping') {
+            // attribute the ping to its sender, in their army colour
+            var pinger = armyName[alert.army_id];
+            text = pinger ? 'Ping — ' + pinger : 'Ping';
+            color = armyColor[alert.army_id] || null;
+        }
         else if (template) text = template.replace('__name__', name);
         else text = name + ' ' + humanize(wtName || ('alert ' + alert.watch_type));
 
@@ -150,6 +162,7 @@
             count: 1,
             timeText: paqolTimefmt.format(gameTime),
             text: text,
+            color: color,
             hostile: hostile,
             location: hasLocation ? alert.location : null,
             planet_id: hasLocation ? alert.planet_id : null
@@ -218,6 +231,16 @@
         if (!payload || payload.view !== 0) return;
         if (typeof payload.current_time === 'number' && !isNaN(payload.current_time))
             gameTime = payload.current_time;
+    };
+
+    handlers.player_data = function (payload) {
+        if (!payload || !_.isArray(payload.ids)) return;
+        armyName = {};
+        armyColor = {};
+        for (var i = 0; i < payload.ids.length; i++) {
+            if (_.isArray(payload.names)) armyName[payload.ids[i]] = payload.names[i];
+            if (_.isArray(payload.colors)) armyColor[payload.ids[i]] = payload.colors[i];
+        }
     };
 
     handlers.watch_list = function (payload) {
