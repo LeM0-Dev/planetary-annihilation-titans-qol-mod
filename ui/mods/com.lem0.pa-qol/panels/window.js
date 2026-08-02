@@ -280,6 +280,22 @@
         toParent('paqolWinToggleMin', [role]);
     });
 
+    // Mousewheel: unless the page consumes the event (preventDefault), the
+    // engine forwards it to the game as camera zoom — the same reason the
+    // stock build bar squelches it (live_game_build_bar.js:739-746). Scroll
+    // the list ourselves and consume.
+    (function () {
+        var body = document.querySelector('.paqol-win-body');
+        function onWheel(e) {
+            var ev = e.originalEvent || e;
+            var up = ev.wheelDelta !== undefined ? (ev.wheelDelta > 0) : (ev.detail < 0);
+            if (body) body.scrollTop += up ? -60 : 60;
+            e.preventDefault();
+            return false;
+        }
+        $(document).on('mousewheel DOMMouseScroll', onWheel);
+    })();
+
     // ------------------------------------------------------------------ boot
     app.registerWithCoherent(model, handlers);
     ko.applyBindings(model);
