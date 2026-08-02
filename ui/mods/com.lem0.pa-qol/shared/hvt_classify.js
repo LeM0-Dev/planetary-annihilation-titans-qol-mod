@@ -30,23 +30,25 @@ var paqolHvt = (function () {
     // Ordered: first match wins. Commander before Titan (commander titans in
     // tutorial content), Titan before Teleporter (Helios has a teleporter
     // block but is tagged LaserPlatform, not Teleporter — belt and braces).
+    // Ranks order the target window: commander-role units first (some
+    // enemies field Colonels/Angels in a commander-like role).
     var CATEGORIES = [
         { key: 'commander', bit: BITS.Commander, label: '!LOC:Commander', rank: 0 },
         { key: 'colonel', bit: BITS.SupportCommander, label: '!LOC:Colonel', rank: 1 },
-        { key: 'titan', bit: BITS.Titan, label: '!LOC:Titan', rank: 2 },
-        { key: 'nuke', bit: BITS.Nuke, label: '!LOC:Nuke Launcher', rank: 3 },
-        { key: 'antinuke', bit: BITS.NukeDefense, label: '!LOC:Anti-Nuke', rank: 4 },
-        { key: 'catalyst', bit: BITS.ControlModule, label: '!LOC:Catalyst', rank: 6 },
-        { key: 'halley', bit: BITS.PlanetEngine, label: '!LOC:Halley', rank: 7 },
-        { key: 'teleporter', bit: BITS.Teleporter, label: '!LOC:Teleporter', rank: 8 }
+        { key: 'titan', bit: BITS.Titan, label: '!LOC:Titan', rank: 3 },
+        { key: 'nuke', bit: BITS.Nuke, label: '!LOC:Nuke Launcher', rank: 4 },
+        { key: 'antinuke', bit: BITS.NukeDefense, label: '!LOC:Anti-Nuke', rank: 5 },
+        { key: 'catalyst', bit: BITS.ControlModule, label: '!LOC:Catalyst', rank: 7 },
+        { key: 'halley', bit: BITS.PlanetEngine, label: '!LOC:Halley', rank: 8 },
+        { key: 'teleporter', bit: BITS.Teleporter, label: '!LOC:Teleporter', rank: 9 }
     ];
 
     // No dedicated unit_type bit exists for these; the base game itself
     // path-matches spec ids (live_game_unit_alert.js:469 for the unit
     // cannon). The Angel (support_platform) only carries generic tags.
     var PATH_CATEGORIES = [
-        { re: /unit_cannon/, key: 'unit_cannon', label: '!LOC:Unit Cannon', rank: 5 },
-        { re: /support_platform/, key: 'angel', label: '!LOC:Angel', rank: 9 }
+        { re: /unit_cannon/, key: 'unit_cannon', label: '!LOC:Unit Cannon', rank: 6 },
+        { re: /support_platform/, key: 'angel', label: '!LOC:Angel', rank: 2 }
     ];
 
     function classify(unitTypes, specId) {

@@ -91,17 +91,19 @@
     ];
 
     // Enemy target window categories. Keys MUST match paqolHvt.classify keys.
+    // Colonels and Angels sit right under Commanders: some enemies (notably
+    // GW AI factions) field them in a commander-like role.
     var HVT_TARGETS = [
         ['commander', '!LOC:Commanders'],
         ['colonel', '!LOC:Colonels (support commanders)'],
+        ['angel', '!LOC:Angels (support platforms)'],
         ['titan', '!LOC:Titans'],
         ['nuke', '!LOC:Nuke launchers'],
         ['antinuke', '!LOC:Anti-nuke launchers'],
         ['unit_cannon', '!LOC:Unit cannons'],
         ['catalyst', '!LOC:Catalysts'],
         ['halley', '!LOC:Halleys'],
-        ['teleporter', '!LOC:Teleporters'],
-        ['angel', '!LOC:Angels (support platforms)']
+        ['teleporter', '!LOC:Teleporters']
     ];
 
     window.paqolNotifyDefaults = {
