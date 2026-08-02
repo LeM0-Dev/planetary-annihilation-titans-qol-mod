@@ -12,21 +12,36 @@
 
         <div class="paqol-settings-section">
             <div class="paqol-settings-heading"><loc>Windows</loc></div>
-            <div class="paqol-settings-row" data-search="notification history window show hide">
-                <label><input type="checkbox" data-bind="checked: historyEnabled" /> <loc>Notification history window</loc></label>
+
+            <div class="paqol-settings-group">
+                <div class="paqol-settings-subheading"><loc>Notification history</loc></div>
+                <div class="paqol-settings-row" data-search="notification history window show hide enable">
+                    <label><input type="checkbox" data-bind="checked: historyEnabled" /> <loc>Enable</loc></label>
+                </div>
+                <div class="paqol-settings-row" data-search="history length cap size rows">
+                    <label><loc>History length</loc>
+                        <select data-bind="options: capOptions, value: historyCap, enable: historyEnabled"></select>
+                    </label>
+                </div>
             </div>
-            <div class="paqol-settings-row" data-search="history length cap size rows">
-                <label><loc>History length</loc>
-                    <select data-bind="options: capOptions, value: historyCap, enable: historyEnabled"></select>
-                </label>
+
+            <div class="paqol-settings-group">
+                <div class="paqol-settings-subheading"><loc>Target window</loc></div>
+                <div class="paqol-settings-row" data-search="enemy target window show hide enable hvt">
+                    <label><input type="checkbox" data-bind="checked: hvtEnabled" /> <loc>Enable</loc></label>
+                </div>
+                <div class="paqol-settings-subsubheading"><loc>Targets</loc></div>
+                <div class="paqol-settings-targets">
+                    <!-- ko foreach: targetRows -->
+                    <div class="paqol-settings-row" data-bind="attr: { 'data-search': 'target ' + $data.title }">
+                        <label><input type="checkbox"
+                                      data-bind="checked: $data.enabled, enable: $parent.hvtEnabled" />
+                            <span data-bind="text: $data.title"></span></label>
+                    </div>
+                    <!-- /ko -->
+                </div>
             </div>
-            <div class="paqol-settings-row" data-search="enemy target window show hide hvt">
-                <label><input type="checkbox" data-bind="checked: hvtEnabled" /> <loc>Enemy target window</loc></label>
-            </div>
-            <div class="paqol-settings-row" data-search="teleporter catalyst halley track watchlist engine alerts">
-                <label><input type="checkbox" data-bind="checked: hvtWidenWatchlist, enable: hvtEnabled" />
-                    <loc>Also track teleporters, Catalysts and Halleys (adds engine alerts)</loc></label>
-            </div>
+
             <div class="paqol-settings-note">
                 <loc>Window changes apply at the start of the next game.</loc>
             </div>

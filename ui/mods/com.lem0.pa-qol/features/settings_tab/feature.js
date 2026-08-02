@@ -73,11 +73,21 @@
                 self.historyEnabled = ko.observable(prefs.historyEnabled !== false);
                 self.historyCap = ko.observable(typeof prefs.historyCap === 'number' ? prefs.historyCap : 300);
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
-                self.hvtWidenWatchlist = ko.observable(prefs.hvtWidenWatchlist !== false);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
                 self.capOptions = [100, 300, 500, 1000, 2000];
                 self.windowOptions = [1500, 3000, 5000, 8000];
+
+                // per-category target toggles
+                var storedTargets = prefs.hvtTargets || {};
+                self.targetRows = [];
+                _.forEach(paqolNotifyDefaults.hvtTargets(), function (t) {
+                    self.targetRows.push({
+                        key: t[0],
+                        title: paqol.loc(t[1]),
+                        enabled: ko.observable(storedTargets[t[0]] !== false)
+                    });
+                });
 
                 var save = _.debounce(function () {
                     var notifications = {};
@@ -88,11 +98,14 @@
                         };
                     }
                     paqol.store.set('notifications', notifications);
+                    var hvtTargets = {};
+                    for (var t = 0; t < self.targetRows.length; t++)
+                        hvtTargets[self.targetRows[t].key] = self.targetRows[t].enabled() === true;
                     paqol.store.set('prefs', {
                         historyEnabled: self.historyEnabled() === true,
                         historyCap: Number(self.historyCap()),
                         hvtEnabled: self.hvtEnabled() === true,
-                        hvtWidenWatchlist: self.hvtWidenWatchlist() === true,
+                        hvtTargets: hvtTargets,
                         arbiterWindowMs: Number(self.arbiterWindowMs())
                     });
                 }, 300);
@@ -102,8 +115,9 @@
                     row.priority.subscribe(save);
                 });
                 _.forEach([self.historyEnabled, self.historyCap, self.hvtEnabled,
-                    self.hvtWidenWatchlist, self.arbiterWindowMs],
+                    self.arbiterWindowMs],
                     function (obs) { obs.subscribe(save); });
+                _.forEach(self.targetRows, function (row) { row.enabled.subscribe(save); });
 
                 self.restoreDefaults = function () {
                     _.forEach(allRows, function (row) {
@@ -113,7 +127,7 @@
                     self.historyEnabled(true);
                     self.historyCap(300);
                     self.hvtEnabled(true);
-                    self.hvtWidenWatchlist(true);
+                    _.forEach(self.targetRows, function (row) { row.enabled(true); });
                     self.arbiterWindowMs(3000);
                 };
 

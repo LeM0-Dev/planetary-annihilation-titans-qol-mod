@@ -90,8 +90,26 @@
         }
     ];
 
+    // Enemy target window categories. Keys MUST match paqolHvt.classify keys.
+    var HVT_TARGETS = [
+        ['commander', '!LOC:Commanders'],
+        ['titan', '!LOC:Titans'],
+        ['nuke', '!LOC:Nuke launchers'],
+        ['antinuke', '!LOC:Anti-nuke launchers'],
+        ['unit_cannon', '!LOC:Unit cannons'],
+        ['catalyst', '!LOC:Catalysts'],
+        ['halley', '!LOC:Halleys'],
+        ['teleporter', '!LOC:Teleporters']
+    ];
+
     window.paqolNotifyDefaults = {
         groups: function () { return GROUPS; },
+        hvtTargets: function () { return HVT_TARGETS; },
+        buildHvtTargets: function () {
+            var out = {};
+            for (var i = 0; i < HVT_TARGETS.length; i++) out[HVT_TARGETS[i][0]] = true;
+            return out;
+        },
         // -> { eventName: {enabled, priority} }
         build: function () {
             var out = {};
@@ -118,20 +136,39 @@
         });
 
         paqol.store.define('prefs', {
-            version: 1,
+            version: 2,
             defaults: {
                 historyEnabled: true,
                 historyCap: 300,
                 hvtEnabled: true,
-                hvtWidenWatchlist: true,
+                hvtTargets: window.paqolNotifyDefaults.buildHvtTargets(),
                 arbiterWindowMs: 3000
             },
+            // v1 had a single hvtWidenWatchlist toggle covering the three
+            // categories that need widened engine watch lists; carry that
+            // choice into the per-category toggles.
+            migrate: function (fromVersion, data) {
+                if (fromVersion === 1) {
+                    data = data || {};
+                    var widen = data.hvtWidenWatchlist !== false;
+                    data.hvtTargets = window.paqolNotifyDefaults.buildHvtTargets();
+                    data.hvtTargets.catalyst = widen;
+                    data.hvtTargets.halley = widen;
+                    data.hvtTargets.teleporter = widen;
+                    delete data.hvtWidenWatchlist;
+                    fromVersion = 2;
+                }
+                return { version: fromVersion, data: data };
+            },
             validate: function (d) {
+                var targetShape = {};
+                for (var i = 0; i < HVT_TARGETS.length; i++)
+                    targetShape[HVT_TARGETS[i][0]] = paqolSchema.bool;
                 return paqolSchema.check(d, paqolSchema.object({
                     historyEnabled: paqolSchema.bool,
                     historyCap: paqolSchema.intRange(50, 2000),
                     hvtEnabled: paqolSchema.bool,
-                    hvtWidenWatchlist: paqolSchema.bool,
+                    hvtTargets: paqolSchema.object(targetShape),
                     arbiterWindowMs: paqolSchema.intRange(500, 15000)
                 }));
             }

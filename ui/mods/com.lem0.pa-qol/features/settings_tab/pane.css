@@ -55,6 +55,16 @@
     text-transform: uppercase;
 }
 
+.paqol-settings-subsubheading {
+    font-size: 12px;
+    color: #7f97a6;
+    margin: 8px 0 2px 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.paqol-settings-targets { margin-left: 24px; }
+
 .paqol-settings-row { padding: 3px 0; }
 .paqol-settings-row label { cursor: pointer; }
 

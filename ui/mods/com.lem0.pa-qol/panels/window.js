@@ -174,6 +174,8 @@
         if (alert.is_hostile !== true) return;
         var cat = paqolHvt.classify(alert.unit_types, alert.spec_id);
         if (!cat) return;
+        // per-category user toggles (Settings -> PA QOL -> Target window)
+        if (prefs.hvtTargets && prefs.hvtTargets[cat.key] === false) return;
 
         entries[alert.id] = {
             id: alert.id,

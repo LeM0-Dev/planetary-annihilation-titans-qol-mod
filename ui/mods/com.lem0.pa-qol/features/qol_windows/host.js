@@ -218,20 +218,28 @@
             }, 'model.processExternalUnitEvent');
 
             // ------------------------------------------ widened watch lists
-            // On by default: teleporters/Catalysts/Halleys generate sight
-            // alerts too. Disable in Settings -> PA QOL if the alert volume
-            // bothers you.
-            if (prefs.hvtWidenWatchlist !== false && prefs.hvtEnabled !== false) {
+            // Teleporters/Catalysts/Halleys only generate sight alerts when
+            // their unit types are added to the engine watch lists; widen for
+            // exactly the categories the user has enabled (Settings -> PA QOL
+            // -> Target window). The other categories are covered by the base
+            // game's own lists already.
+            var targets = prefs.hvtTargets || {};
+            var extraTypes = [];
+            if (targets.teleporter !== false) extraTypes.push('Teleporter');
+            if (targets.catalyst !== false) extraTypes.push('ControlModule');
+            if (targets.halley !== false) extraTypes.push('PlanetEngine');
+
+            if (extraTypes.length && prefs.hvtEnabled !== false) {
                 paqol.safeWrap(model, 'setupWatchList', function (callOriginal) {
                     var result = callOriginal();
                     if (window.engine && typeof engine.call === 'function') {
-                        var include = ['Factory', 'Commander', 'Recon', 'Important', 'Titan',
-                            'Teleporter', 'ControlModule', 'PlanetEngine'];
+                        var include = ['Factory', 'Commander', 'Recon', 'Important', 'Titan']
+                            .concat(extraTypes);
                         var exclude = ['Wall'];
                         engine.call('watchlist.setSightAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
                         engine.call('watchlist.setDeathAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
                         engine.call('watchlist.setTargetDestroyedAlertTypes', JSON.stringify(include), JSON.stringify(exclude));
-                        paqol.log.info('watch lists widened (Teleporter/ControlModule/PlanetEngine).');
+                        paqol.log.info('watch lists widened (' + extraTypes.join('/') + ').');
                     }
                     return result;
                 }, 'model.setupWatchList');
