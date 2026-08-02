@@ -1,8 +1,9 @@
-# PA QoL — architecture
+# PA:T QoL — architecture
 
 Client mod, identifier `com.lem0.pat-qol`. The repo root is the mod root:
-`modinfo.json` and `ui/` sit at the top so a single symlink into
-`client_mods/` works and the release ZIP is `zip modinfo.json ui`.
+`modinfo.json` and `ui/` sit at the top and the release ZIP is
+`zip modinfo.json ui`. (PA's VFS does not follow symlinks — dev installs
+copy via `tools/install-copy.sh`.)
 
 ## Layout
 
@@ -10,12 +11,22 @@ Client mod, identifier `com.lem0.pat-qol`. The repo root is the mod root:
 ui/mods/com.lem0.pat-qol/
 ├── core/       scene-glue: namespace, logger, invariants, safeWrap,
 │               feature registry, localStorage store, cross-panel bus,
-│               game clock, constants reverse-maps, floating panel widget
+│               constants reverse-maps
 ├── shared/     PURE logic — no DOM, no PA globals. Every file has a
 │               module.exports tail guard and is tested by node --test.
-├── features/   one directory per feature
+├── features/   notify_priority (audio arbiter + defaults/stores),
+│               qol_windows (panel host), settings_tab
+├── panels/     window.html/.js/.css — the floating-window PAGE, composited
+│               by the engine; one page serves both windows (role from
+│               api.Panel.pageName). Loads its scripts itself via <script>
+│               tags incl. bundle://boot/boot.js (the engine does NOT
+│               auto-inject the UI framework).
 └── scenes/     one boot file per scene; claims the scene guard and runs
                 the registry
+
+ui/main/game/live_game/js/audio.js   the mod's ONLY base-file shadow: makes
+                                     the vanilla 30 s voice-priority decay
+                                     configurable. Re-diff after PA patches.
 ```
 
 ## The registry
@@ -47,13 +58,15 @@ world input.
 Therefore each QoL window is its **own small `<panel>`**, created dynamically
 by `features/qol_windows/host.js` and bound with `api.Panel.bindElement`.
 
-## Data flow (v0.2)
+## Data flow
 
 ```
 engine broadcasts                    panels/window.html × 2
-(watch_list / custom_alert / time    ('paqol_history', 'paqol_hvt' — role from
- go to EVERY view declaring the       api.Panel.pageName; content, rows,
- handler in api.Panel.ready)  ──────▶ camera-jump live here)
+(watch_list / custom_alert / time /  ('paqol_history', 'paqol_hvt' — role from
+ player_data go to EVERY view         api.Panel.pageName; content, rows,
+ declaring the handler in             camera-jump live here; roster also
+ api.Panel.ready)             ──────▶ PULLED once at boot — the first
+                                      player_data broadcast races page load)
                                               ▲ 'paqol_event', 'paqol_state'
 live_game (features/qol_windows/host.js)      │
   creates the <panel> elements ───────────────┘
@@ -77,9 +90,12 @@ in live_game AND live_game_unit_alert (two independent audio queues).
 - Settings are shared through `localStorage` (one origin for all
   `coui://ui/...` scenes). The live scenes re-read config at most every 2 s
   (`store.reload`).
-- Window pages load their scripts via their own `<script>` tags (the engine's
-  `boot.json` gives every view jQuery/ko/lodash/api); only scene pages use
-  the modinfo `scenes` map.
+- Window pages load their scripts via their own `<script>` tags, **starting
+  with `bundle://boot/boot.js`** — the engine does NOT auto-inject the UI
+  framework into panel views; every PA page pulls it in explicitly. Only
+  scene pages use the modinfo `scenes` map.
+- Mousewheel over the windows is consumed by the page (scrolls the list);
+  an unconsumed wheel event would be forwarded to the game as camera zoom.
 
 ## Persistence
 
@@ -93,7 +109,7 @@ History rows are **never** persisted — in-memory ring only.
 
 ## Audio arbiter (notify_priority)
 
-Two levers, no shadowed files:
+Two wrap-based levers plus one shadowed constant:
 
 1. Wrap `audioModel.processEvent` (the single choke point every notification
    funnels through). Disabled events are dropped; a lower-priority line inside
@@ -105,6 +121,12 @@ Two levers, no shadowed files:
    is delegating, and drop later-queued cues positively known to belong to a
    disabled event. Never suppresses an unlearned cue. `api.audio.playSound`
    (UI click/rollover) is deliberately untouched.
+
+3. Shadowed `ui/main/game/live_game/js/audio.js`: the vanilla **priority
+   decay** (30 s per level after a line plays — closure-private, no wrap
+   point exists) reads `paqol.audioDecayMs` lazily instead; default 3000,
+   user-settable, 30000 restores vanilla. One marked change; re-diff after
+   every PA patch.
 
 Registered in both `live_game` and `live_game_unit_alert` — each scene loads
 its own copy of `js/audio.js` (two independent queues), matching the base game.

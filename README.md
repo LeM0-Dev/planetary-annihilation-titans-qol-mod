@@ -1,4 +1,4 @@
-# PA QoL
+# PA:T QoL
 
 Quality-of-life client mod for **Planetary Annihilation: TITANS**.
 Identifier `com.lem0.pat-qol`, tested against build 124667.
@@ -16,17 +16,21 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
 
 - **Notification priority** — enable/disable any voice notification and give
   it a priority (0–6). A "metal storage full" line can no longer stomp
-  "commander under attack". Visual alerts are untouched; only audio is gated,
-  and every unknown case fails open (vanilla behaviour).
+  "commander under attack", and the vanilla 30-second priority decay (which
+  let one alarm mute lower-priority lines for minutes) defaults to 3 s.
+  Visual alerts are untouched; only audio is gated, and every unknown case
+  fails open (vanilla behaviour).
 - **Notification history** — a movable, resizable window with every
   notification of the match, stamped with game time, newest first. Click a
-  row to jump the camera to where it happened. Unlike the stock 5-slot strip,
-  nothing expires after 10 seconds and alerts that arrive while you are
+  row to jump the camera to where it happened. Repeats within 15 s coalesce
+  into one ×N row (pings exempt — every ping stays its own row). Unlike the
+  stock 5-slot strip, nothing expires and alerts that arrive while you are
   alt-tabbed are kept.
 - **Enemy targets** — a movable, resizable window listing every spotted enemy
-  high-value target: commanders, Titans, nuke launchers, anti-nukes, unit
-  cannons, Catalysts, Halleys (teleporters opt-in). Click to jump there.
-  Entries disappear on confirmed kill and dim when the sighting is stale.
+  high-value target: commanders, Colonels, Angels, Titans, nuke launchers,
+  anti-nukes, unit cannons, Catalysts, Halleys and teleporters — each
+  category individually toggleable. Click to jump there. Entries disappear on
+  confirmed kill and dim when the sighting is stale.
 
 Configure everything under **Settings → PA:T QOL** (works from the main menu
 and in-game). Window layout changes apply at the start of the next game.
@@ -88,7 +92,7 @@ maintenance actions:
 
    Use real folders — PA does not follow symlinks.
 
-3. Start PA:TITANS, open **Community Mods → Installed**, enable **PA QoL**
+3. Start PA:TITANS, open **Community Mods → Installed**, enable **PA:T QoL**
    (click *reload filesystem mods* if it is not listed), then restart the
    game. Mods mount at startup.
 
@@ -109,7 +113,7 @@ tools/install-copy.sh        # rsyncs the runtime files into PA's client_mods/
 (`tools/install-symlink.sh` exists but PA's VFS does not follow symlinks —
 verified on this setup — so the copy script is the working dev loop.)
 
-Then enable **PA QoL** under Community Mods → Installed and restart PA.
+Then enable **PA:T QoL** under Community Mods → Installed and restart PA.
 Client mods mount at boot; there is no reliable hot reload — restart after
 every change.
 

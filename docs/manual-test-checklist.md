@@ -41,14 +41,17 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 ## D. Enemy targets
 
 13. Scout an enemy nuke launcher, anti-nuke, unit cannon, each Titan,
-    commander, Catalyst, Halley → each appears once, correctly categorised.
+    commander, Colonel, Angel, Catalyst, Halley, teleporter → each appears
+    once, correctly categorised, ordered commander-role first.
 14. Kill each one → the entry disappears.
 15. Re-sight a previously seen unit → no duplicate; "last seen" updates;
     unseen-for-5-min entries dim.
 16. Own/allied units never appear.
-17. Enable "also track teleporters..." → teleporters appear next game;
-    disable → back to baseline; check the stock alert strip is not flooded.
-18. Click an entry → camera jumps.
+17. Disable a target category (Settings → Target window → Targets) → that
+    category stops appearing next game; the widened engine watch lists only
+    include enabled categories; the stock alert strip is not flooded.
+18. Click an entry → camera jumps. Mousewheel over either window scrolls the
+    list and does NOT zoom the game camera.
 
 ## E. Notification priority
 
@@ -84,14 +87,13 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 32. Galactic War (`gw_play` → live game) → no errors.
 33. Disable the mod, restart → no residue; settings opens on a valid tab.
 
-## Open spikes (do these FIRST on a fresh install)
+## Resolved spikes (answers baked into the design)
 
-- **S1 — symlink**: after `tools/install-symlink.sh`, does PA list the mod
-  under Community Mods → Installed? If not, use `tools/install-copy.sh`.
-- **S2 — mouse capture**: drag inside a panel — camera must not pan, units
-  must not deselect underneath. If events leak, the floating-panel
-  `stopPropagation` list in `core/ui/floating_panel.js` needs widening.
-- **S3 — alert id stability**: scout then kill an enemy nuke launcher; the
-  HVT entry must disappear. If `alert.id` is not stable between sight and
-  death, switch `enemy_hvt` keying to `(planet_id, rounded location,
-  category)` — the change is contained in `feature.js`.
+- **S1 — symlink**: PA's VFS does NOT follow symlinks (`api.file.list` skips
+  them) — `tools/install-copy.sh` is the dev loop.
+- **S2 — mouse capture**: floating DOM inside `live_game` is never even
+  composited (coordinator page); windows are real `<panel>` views with
+  region-based input — drag/click containment is inherent. Wheel events must
+  be consumed by the page or they zoom the camera (handled in window.js).
+- **S3 — alert id stability**: confirmed stable — sight and death alerts for
+  the same unit share `alert.id`; the target window keys on it.
