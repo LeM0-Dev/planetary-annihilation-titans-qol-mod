@@ -44,7 +44,7 @@ No blockers, bugs, concerns, or compliance issues across 58 files; one managed M
 
 ## Unverified — needs clarification
 
-- **Units-window paths not yet observed in-game:** combat rows appearing/expiring, idle-factory clearing via state re-poll, white ping rows, minimized-poll pause, and the `rosterByIndex` fix were implemented after the last live session ended. All pass lint/tests/gate; none has been eyeballed in a running game yet.
+- **Units-window paths:** white ping rows, the `[IDLE]` commander tag, idle-factory rows, dual icons and colour brightening have since been observed in-game (screenshot, 2026-08-02 evening). Still unobserved: combat rows appearing/expiring, idle-factory clearing via the state re-poll, minimized-poll pause, and the `rosterByIndex` fix (replay viewing).
 - **Human-vs-human multiplayer:** allied `getArmyUnits`/commander rows were verified against GW co-op AI allies only; the one-time human-MP checks are itemised in `docs/manual-test-checklist.md`.
 - **`modinfo.forum`** points at the repository's `/discussions` URL — fine if GitHub Discussions is enabled for the repo, a 404 otherwise. Not statically checkable from here.
 

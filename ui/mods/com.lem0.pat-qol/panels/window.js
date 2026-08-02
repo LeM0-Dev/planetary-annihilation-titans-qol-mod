@@ -49,6 +49,8 @@
     // (live_game.js:891 sends it to every child panel).
     var armyName = {};
     var armyColor = {};
+    var ownArmyId = null;            // the engine sets is_allied on OWN units
+                                     // too; this tells 'yours' from 'Allied'
     var colorRev = ko.observable(0); // re-render hook for late roster arrival
 
     // ---- unit icons -----------------------------------------------------
@@ -216,7 +218,9 @@
                     : (row.hostile ? 'Enemy Commander' : (row.allied ? 'Allied Commander' : 'Commander'));
             } else {
                 var display = displayNameFor(row.specKey);
-                var prefix = row.noPrefix ? '' : (row.hostile ? 'Enemy ' : (row.allied ? 'Allied ' : ''));
+                var own = ownArmyId !== null && row.army_id === ownArmyId;
+                var prefix = (row.noPrefix || own) ? ''
+                    : (row.hostile ? 'Enemy ' : (row.allied ? 'Allied ' : ''));
                 name = prefix + (display || row.fallbackName);
             }
             base = row.template ? row.template.replace('__name__', name) : name;
@@ -724,6 +728,8 @@
             if (_.isArray(payload.names)) armyName[payload.ids[i]] = payload.names[i];
             if (_.isArray(payload.colors)) armyColor[payload.ids[i]] = payload.colors[i];
         }
+        if (typeof payload.army_index === 'number' && payload.ids[payload.army_index] !== undefined)
+            ownArmyId = payload.ids[payload.army_index];
         colorRev(colorRev() + 1); // recolour already-rendered rows
     };
 

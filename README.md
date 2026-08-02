@@ -47,10 +47,11 @@ and in-game). Window layout changes apply at the start of the next game.
 
 ## Screenshots
 
-The in-game windows — notification history with game-time stamps, coalesced
-repeats (×N) and clickable rows, and the enemy target list:
+The three in-game windows — notification history (game-time stamps, ×N
+coalescing, unit icons in owner colours), the enemy target list, and
+Own & Allied (commander with [IDLE] tag, idle factories):
 
-![Notification history and enemy targets windows in-game](docs/img/notifications.png)
+![Notification history, enemy targets and own & allied windows in-game](docs/img/notifications.png)
 
 The **PA:T QOL** settings tab — search, window toggles with per-category
 targets, and the voice priority controls:
