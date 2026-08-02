@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.3 — 2026-08-02
+
+- Notification history de-spam: repeats of the same notification within 15 s
+  coalesce into one row with a ×N counter; derived-event rows that duplicate
+  a watch alert (e.g. "enemy commander under attack" next to the commander's
+  own red damage row) are dropped in favour of the alert row, which carries
+  the name and clickable location. Alert rows are prefixed Enemy/Allied.
+- Fixed window panel pages missing the engine boot bundle
+  (`bundle://boot/boot.js`) — 0.2.1's windows rendered unbound templates and
+  captured no data.
+- Release notes now embed the changelog section for the released version.
+
 ## 0.2.0 — 2026-08-02
 
 Architecture fix: the notification-history and enemy-target windows are now

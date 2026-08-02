@@ -61,8 +61,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V="${{ steps.v.outputs.version }}"
+          # Changelog section for this exact version; patch-level dev bumps
+          # between documented versions fall back to the newest section,
+          # labelled with the heading it came from.
           NOTES=$(awk -v ver="$V" '/^## /{ if (found) exit; if ($2 == ver) { found=1; next } } found' CHANGELOG.md)
-          [ -n "$NOTES" ] || NOTES="PA QoL v$V"
+          if [ -z "$NOTES" ]; then
+            NEWEST=$(awk '/^## /{ print $2; exit }' CHANGELOG.md)
+            BODY=$(awk '/^## /{ if (found) exit; found=1; next } found' CHANGELOG.md)
+            NOTES=$(printf 'Incremental build on top of v%s:\n%s' "$NEWEST" "$BODY")
+          fi
+          NOTES=$(printf '%s\n\n---\n**Downloads**: `com.lem0.pa-qol-%s.zip` is this release; `com.lem0.pa-qol.zip` is the same file under a stable name so `releases/latest/download/com.lem0.pa-qol.zip` always serves the newest version.' "$NOTES" "$V")
           gh release create "v$V" \
             --repo "$GITHUB_REPOSITORY" \
             --title "PA QoL v$V" \
