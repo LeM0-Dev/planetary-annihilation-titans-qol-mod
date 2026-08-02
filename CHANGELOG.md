@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 — 2026-08-02
+
+Row presentation overhaul for both in-game windows:
+
+- **Icons**: every row now carries the unit's build-bar icon and its
+  strategic ("orbit view") icon — the strategic icon rendered exactly like
+  the game does zoomed out: filled in the owning player's army colour with
+  the black glyph preserved.
+- **Names**: rows use the unit's actual in-game name (Ragnarok, Angel,
+  Air Factory) instead of file-derived labels. Commander rows read
+  "[player name] Commander" — the player is the information, not the
+  commander model.
+- **Colours**: row text is tinted the owning player's army colour whenever
+  the roster knows the army (your own units included), falling back to red
+  for enemies and white for allies.
+- **Layout**: larger text and icons; timestamp pinned to the far right.
+- **Right-click a row** to dismiss that entry (history and targets).
+- Continuous-build on/off chatter no longer clutters the history (its voice
+  settings are unaffected).
+
 ## 0.3.0 — 2026-08-02
 
 First public release of **PA:T QoL** (`com.lem0.pat-qol`).
