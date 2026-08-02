@@ -113,9 +113,36 @@ every change.
 
 ## Development
 
-**Branches**: day-to-day work and all contributions land on `staging` —
-open pull requests against `staging`, not `main`. `main` is the release
-branch: merging `staging` into it publishes a GitHub release automatically.
+### Branches and releases
+
+- **`staging`** — day-to-day work and all contributions. Open pull requests
+  against `staging`, not `main`. The `check` workflow (lint + tests + release
+  gate) runs on every PR and every push to it.
+- **`main`** — the release branch. It only moves by promoting `staging`.
+
+### Versioning
+
+The mod version moves **once per release**, never per commit:
+
+- Commits and dev reinstalls on `staging` never change the version.
+- To release, run on `staging`:
+
+  ```sh
+  tools/promote.sh           # patch bump  (0.2.13 -> 0.2.14)
+  tools/promote.sh minor     # minor bump  (0.2.13 -> 0.3.0)
+  tools/promote.sh major     # major bump  (0.2.13 -> 1.0.0)
+  ```
+
+  It bumps `modinfo.json` + `paqol.VERSION`, runs the full check gate,
+  commits `release: vX`, pushes `staging`, and opens a **Release vX** PR onto
+  `main`. Merging that PR triggers the release workflow, which publishes the
+  GitHub release (versioned ZIP + stable `com.lem0.pa-qol.zip` for the
+  permanent latest-download URL). Releases are only minted when shipped code
+  (`ui/**`) changed.
+- Committing directly on `main` (avoid it) bumps the patch version once per
+  push cycle via `tools/install-copy.sh`.
+
+### Tooling
 
 ```sh
 npm install        # dev tooling only; nothing here ships
