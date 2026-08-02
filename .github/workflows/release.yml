@@ -7,7 +7,7 @@ name: release
 #
 # Each release carries its versioned ZIP (the historical record) and a
 # stable-named ZIP, so the permanent URL
-#   .../releases/latest/download/com.lem0.pa-qol.zip
+#   .../releases/latest/download/com.lem0.pat-qol.zip
 # always serves the newest build.
 
 on:
@@ -62,7 +62,7 @@ jobs:
         run: |
           sh tools/package.sh
           V="${{ steps.v.outputs.version }}"
-          cp "dist/com.lem0.pa-qol-$V.zip" "dist/com.lem0.pa-qol.zip"
+          cp "dist/com.lem0.pat-qol-$V.zip" "dist/com.lem0.pat-qol.zip"
 
       - name: Publish release
         env:
@@ -70,11 +70,11 @@ jobs:
         run: |
           V="${{ steps.v.outputs.version }}"
           NOTES=$(awk -v ver="$V" '/^## /{ if (found) exit; if ($2 == ver) { found=1; next } } found' CHANGELOG.md)
-          NOTES=$(printf '%s\n\n---\n**Downloads**: `com.lem0.pa-qol-%s.zip` is this release; `com.lem0.pa-qol.zip` is the same file under a stable name so `releases/latest/download/com.lem0.pa-qol.zip` always serves the newest version.' "$NOTES" "$V")
+          NOTES=$(printf '%s\n\n---\n**Downloads**: `com.lem0.pat-qol-%s.zip` is this release; `com.lem0.pat-qol.zip` is the same file under a stable name so `releases/latest/download/com.lem0.pat-qol.zip` always serves the newest version.' "$NOTES" "$V")
           gh release create "v$V" \
             --repo "$GITHUB_REPOSITORY" \
             --title "PA QoL v$V" \
             --notes "$NOTES" \
             --latest \
-            "dist/com.lem0.pa-qol-$V.zip" \
-            "dist/com.lem0.pa-qol.zip"
+            "dist/com.lem0.pat-qol-$V.zip" \
+            "dist/com.lem0.pat-qol.zip"

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const ringMod = require('../ui/mods/com.lem0.pa-qol/shared/ring.js');
+const ringMod = require('../ui/mods/com.lem0.pat-qol/shared/ring.js');
 
 test('newest first', () => {
     const r = ringMod.create(10);

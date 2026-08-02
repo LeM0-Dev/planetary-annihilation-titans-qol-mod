@@ -1,4 +1,4 @@
-/* PA QoL (com.lem0.pa-qol) SHADOW of the base game's
+/* PA QoL (com.lem0.pat-qol) SHADOW of the base game's
    ui/main/game/live_game/js/audio.js (build 124667, md5 64c22eb2...).
    The ONLY change: priority_level_cooldown (how long a played voice line's
    priority keeps suppressing lower-priority lines; vanilla hardcodes 30 s)

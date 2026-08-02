@@ -32,7 +32,7 @@ fi
 node -e '
 const fs = require("fs");
 const v = process.argv[1];
-const ns = "ui/mods/com.lem0.pa-qol/core/ns.js";
+const ns = "ui/mods/com.lem0.pat-qol/core/ns.js";
 fs.writeFileSync(ns, fs.readFileSync(ns, "utf8")
     .replace(/paqol\.VERSION = \x27[^\x27]*\x27/, "paqol.VERSION = \x27" + v + "\x27"));
 ' "$V"
@@ -40,7 +40,7 @@ fs.writeFileSync(ns, fs.readFileSync(ns, "utf8")
 npm run check
 
 if [ -n "$(git status --porcelain)" ]; then
-    git add modinfo.json CHANGELOG.md ui/mods/com.lem0.pa-qol/core/ns.js
+    git add modinfo.json CHANGELOG.md ui/mods/com.lem0.pat-qol/core/ns.js
     git commit -m "release: v$V"
 fi
 git push origin staging

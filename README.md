@@ -1,7 +1,7 @@
 # PA QoL
 
 Quality-of-life client mod for **Planetary Annihilation: TITANS**.
-Identifier `com.lem0.pa-qol`, tested against build 124667.
+Identifier `com.lem0.pat-qol`, tested against build 124667.
 
 ## Table of contents
 
@@ -46,12 +46,12 @@ maintenance actions:
 ## Install (players)
 
 1. Download the newest ZIP — permanent link:
-   **[com.lem0.pa-qol.zip](https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/releases/latest/download/com.lem0.pa-qol.zip)**
+   **[com.lem0.pat-qol.zip](https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/releases/latest/download/com.lem0.pat-qol.zip)**
    (older versions under [Releases](https://github.com/LeM0-Dev/planetary-annihilation-titans-qol-mod/releases)).
 
-2. Extract it into a folder named `com.lem0.pa-qol` inside PA's `client_mods`
+2. Extract it into a folder named `com.lem0.pat-qol` inside PA's `client_mods`
    directory, so that `modinfo.json` ends up at
-   `client_mods/com.lem0.pa-qol/modinfo.json`:
+   `client_mods/com.lem0.pat-qol/modinfo.json`:
 
    **Windows** — press `Win`+`R`, paste the line below, press Enter; Explorer
    opens the right folder (usually
@@ -65,7 +65,7 @@ maintenance actions:
    1. Create a new folder named exactly `client_mods` — it does **not** exist
       on a normal installation; only the game itself and folders like
       `download` and `log` will be there.
-   2. Inside `client_mods`, create a folder named `com.lem0.pa-qol`.
+   2. Inside `client_mods`, create a folder named `com.lem0.pat-qol`.
    3. Extract the ZIP into it, so `modinfo.json` sits directly in that folder.
 
    (The `AppData` folder is hidden by default — the `Win`+`R` shortcut
@@ -75,13 +75,13 @@ maintenance actions:
    extract the ZIP into the inner one:
 
    ```
-   ~/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/
+   ~/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pat-qol/
    ```
 
    **macOS** — same structure:
 
    ```
-   ~/Library/Application Support/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/
+   ~/Library/Application Support/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pat-qol/
    ```
 
    Use real folders — PA does not follow symlinks.
@@ -95,7 +95,7 @@ maintenance actions:
 
 To update: replace the folder contents with the new ZIP and restart. To
 uninstall: disable in Community Mods or delete the folder. All settings live
-in PA's local storage under `com.lem0.pa-qol/*` keys and survive updates.
+in PA's local storage under `com.lem0.pat-qol/*` keys and survive updates.
 
 ## Install (development)
 
@@ -134,7 +134,7 @@ The version is set **manually, once per release**, on `staging`:
 Merging that PR triggers the release workflow, which **fails on purpose** if
 the version is already released or the changelog section is missing, and
 otherwise publishes the GitHub release (versioned ZIP + stable
-`com.lem0.pa-qol.zip` for the permanent latest-download URL). Releases are
+`com.lem0.pat-qol.zip` for the permanent latest-download URL). Releases are
 only minted when shipped code (`ui/**`) changed.
 
 ### Tooling
@@ -142,7 +142,7 @@ only minted when shipped code (`ui/**`) changed.
 ```sh
 npm install        # dev tooling only; nothing here ships
 npm run check      # eslint (ES5 over ui/mods/**) + node --test + release gate
-npm run package    # dist/com.lem0.pa-qol-<version>.zip
+npm run package    # dist/com.lem0.pat-qol-<version>.zip
 ```
 
 Read these before writing code:
@@ -160,7 +160,7 @@ Read these before writing code:
 
 ## Adding a feature
 
-1. Create `ui/mods/com.lem0.pa-qol/features/<name>/feature.js`:
+1. Create `ui/mods/com.lem0.pat-qol/features/<name>/feature.js`:
 
    ```js
    (function () {

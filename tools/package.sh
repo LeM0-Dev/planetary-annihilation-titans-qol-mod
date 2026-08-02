@@ -9,7 +9,7 @@ node --test "test/"*.test.mjs > /dev/null 2>&1 || { echo 'FAIL: tests failing; n
 
 V=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("modinfo.json","utf8")).version)')
 mkdir -p dist
-OUT="dist/com.lem0.pa-qol-$V.zip"
+OUT="dist/com.lem0.pat-qol-$V.zip"
 rm -f "$OUT"
 zip -r -X -q "$OUT" modinfo.json ui
 

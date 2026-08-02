@@ -7,7 +7,7 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 ## A. Load
 
 1. Clean restart, mod enabled, no other mods → exactly one
-   `[com.lem0.pa-qol] scene "...": N feature(s) started, 0 failed` per scene;
+   `[com.lem0.pat-qol] scene "...": N feature(s) started, 0 failed` per scene;
    zero errors/warnings attributable to us.
 2. Install from the release ZIP (not the symlink) and repeat.
 3. With pachat + Galactic War Overhaul also enabled → still clean.
@@ -61,7 +61,7 @@ panel context (Coherent debugger, `--coherent_port=9999`).
     line plays, metal line does not.
 23. Reverse the order → both play (high after low is never blocked).
 24. Console: `paqol.arbiter.bypass = true` → behaviour is exactly vanilla.
-25. After ~10 min of play, `localStorage['com.lem0.pa-qol/cuemap']` has
+25. After ~10 min of play, `localStorage['com.lem0.pat-qol/cuemap']` has
     learned entries and stays under the 200 cap.
 
 ## F. Settings
@@ -73,7 +73,7 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 28. Shared footer "restore defaults" while on our tab → resets OUR settings
     only; other tabs' state untouched.
 29. Restart PA → settings persisted.
-30. Hand-corrupt `localStorage['com.lem0.pa-qol/notifications']` to `{{{` →
+30. Hand-corrupt `localStorage['com.lem0.pat-qol/notifications']` to `{{{` →
     one error logged, defaults used, a `.corrupt.<ts>` backup key exists,
     nothing crashes.
 

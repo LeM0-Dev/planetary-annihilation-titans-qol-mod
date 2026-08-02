@@ -1,7 +1,7 @@
 {
   "name": "pa-qol-dev",
   "private": true,
-  "description": "Dev tooling for the PA QoL mod (com.lem0.pa-qol). Nothing here ships in the mod ZIP.",
+  "description": "Dev tooling for the PA QoL mod (com.lem0.pat-qol). Nothing here ships in the mod ZIP.",
   "scripts": {
     "test": "node --test \"test/*.test.mjs\"",
     "lint": "eslint .",

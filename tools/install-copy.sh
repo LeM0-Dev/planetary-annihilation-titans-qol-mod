@@ -3,7 +3,7 @@
 # client_mods dir. Use when the symlink install is not picked up by PA.
 set -eu
 REPO=$(cd "$(dirname "$0")/.." && pwd)
-DEST="$HOME/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol"
+DEST="$HOME/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pat-qol"
 
 if [ -L "$DEST" ]; then
     echo "removing existing symlink $DEST" >&2
@@ -16,7 +16,7 @@ fi
 node -e '
 const fs = require("fs");
 const m = JSON.parse(fs.readFileSync("modinfo.json", "utf8"));
-const ns = "ui/mods/com.lem0.pa-qol/core/ns.js";
+const ns = "ui/mods/com.lem0.pat-qol/core/ns.js";
 const src = fs.readFileSync(ns, "utf8");
 const out = src.replace(/paqol\.VERSION = \x27[^\x27]*\x27/, "paqol.VERSION = \x27" + m.version + "\x27");
 if (out !== src) { fs.writeFileSync(ns, out); console.log("synced paqol.VERSION to " + m.version); }

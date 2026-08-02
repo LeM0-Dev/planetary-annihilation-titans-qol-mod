@@ -5,7 +5,7 @@
 # this system, use tools/install-copy.sh instead.
 set -eu
 REPO=$(cd "$(dirname "$0")/.." && pwd)
-DEST="$HOME/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol"
+DEST="$HOME/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pat-qol"
 
 if [ -e "$DEST" ] && [ ! -L "$DEST" ]; then
     echo "refusing: $DEST exists and is not a symlink" >&2

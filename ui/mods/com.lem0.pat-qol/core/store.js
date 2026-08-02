@@ -1,5 +1,5 @@
 // PA QoL — namespaced, versioned, validated localStorage store. ES5 only.
-// Disk key:  "com.lem0.pa-qol/<name>"
+// Disk key:  "com.lem0.pat-qol/<name>"
 // Envelope:  {"v": <int>, "d": <payload>}
 // Corrupt or invalid data is BACKED UP (key + '.corrupt.<epoch>') and replaced
 // with defaults — never silently destroyed (Rule 7).
@@ -143,6 +143,21 @@
 
     if (typeof window !== 'undefined' && window.paqol) {
         if (!paqol.store) {
+            // One-time migration from the pre-0.3 identifier (com.lem0.pa-qol):
+            // copy each store's raw value to the new key if the new key is
+            // still empty, so nobody loses their settings to the rename.
+            try {
+                var OLD_PREFIX = 'com.lem0.pa-qol';
+                var NAMES = ['notifications', 'prefs', 'cuemap', 'ui'];
+                for (var mi = 0; mi < NAMES.length; mi++) {
+                    var newKey = paqol.MOD_ID + '/' + NAMES[mi];
+                    if (window.localStorage.getItem(newKey) === null) {
+                        var oldVal = window.localStorage.getItem(OLD_PREFIX + '/' + NAMES[mi]);
+                        if (oldVal !== null) window.localStorage.setItem(newKey, oldVal);
+                    }
+                }
+            } catch (e) { /* fresh defaults are an acceptable fallback */ }
+
             paqol.store = createStore(window.localStorage, function (level, m) {
                 paqol.log.once('store:' + m.slice(0, 60), level, m);
             }, paqol.MOD_ID);

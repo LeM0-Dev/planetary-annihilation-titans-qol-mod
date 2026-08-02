@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const geo = require('../ui/mods/com.lem0.pa-qol/shared/geometry.js');
+const geo = require('../ui/mods/com.lem0.pat-qol/shared/geometry.js');
 
 const VIEW = { w: 1920, h: 1080 };
 const OPTS = { minWidth: 200, minHeight: 100, defaults: { left: 40, top: 120, width: 360, height: 300 } };

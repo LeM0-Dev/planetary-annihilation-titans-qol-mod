@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const { createStore } = require('../ui/mods/com.lem0.pa-qol/core/store.js');
-const schema = require('../ui/mods/com.lem0.pa-qol/shared/schema.js');
+const { createStore } = require('../ui/mods/com.lem0.pat-qol/core/store.js');
+const schema = require('../ui/mods/com.lem0.pat-qol/shared/schema.js');
 
-const PREFIX = 'com.lem0.pa-qol';
+const PREFIX = 'com.lem0.pat-qol';
 
 function fakeStorage(initial = {}) {
     const data = { ...initial };

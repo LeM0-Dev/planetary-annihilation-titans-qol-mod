@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const hvt = require('../ui/mods/com.lem0.pa-qol/shared/hvt_classify.js');
+const hvt = require('../ui/mods/com.lem0.pat-qol/shared/hvt_classify.js');
 
 // Build a unit_types [i32,i32,i32,i32] fixture from bit indices, using the
 // same layout as eventSystem.isType: bit b -> section [3 - floor(b/32)].

@@ -31,7 +31,7 @@ ES5 everything, `Date.now`, `JSON`, `Promise`, `Map`/`Set`,
 
 `PA-MOD-CODING-RULES.md`'s own `safeWrap` example uses `const`, rest args and
 template literals — **do not copy it verbatim**. The Chrome-40-correct
-implementation lives in `ui/mods/com.lem0.pa-qol/core/safe.js`; use
+implementation lives in `ui/mods/com.lem0.pat-qol/core/safe.js`; use
 `paqol.safeWrap(target, key, wrapper, tag)` where the wrapper is called as
 `wrapper.call(this, callOriginal, args)`.
 

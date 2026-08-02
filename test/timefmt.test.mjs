@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const fmt = require('../ui/mods/com.lem0.pa-qol/shared/timefmt.js');
+const fmt = require('../ui/mods/com.lem0.pat-qol/shared/timefmt.js');
 
 test('formats minutes and seconds', () => {
     assert.equal(fmt.format(0), '0:00');

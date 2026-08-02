@@ -1,13 +1,13 @@
 # PA QoL — architecture
 
-Client mod, identifier `com.lem0.pa-qol`. The repo root is the mod root:
+Client mod, identifier `com.lem0.pat-qol`. The repo root is the mod root:
 `modinfo.json` and `ui/` sit at the top so a single symlink into
 `client_mods/` works and the release ZIP is `zip modinfo.json ui`.
 
 ## Layout
 
 ```
-ui/mods/com.lem0.pa-qol/
+ui/mods/com.lem0.pat-qol/
 ├── core/       scene-glue: namespace, logger, invariants, safeWrap,
 │               feature registry, localStorage store, cross-panel bus,
 │               game clock, constants reverse-maps, floating panel widget
@@ -83,7 +83,7 @@ in live_game AND live_game_unit_alert (two independent audio queues).
 
 ## Persistence
 
-`paqol.store` — namespaced (`com.lem0.pa-qol/<name>`), versioned envelope
+`paqol.store` — namespaced (`com.lem0.pat-qol/<name>`), versioned envelope
 `{v, d}`, validated on read and write, migrations on version bumps, corrupt
 data backed up to `<key>.corrupt.<epoch>` and replaced with defaults, writes
 debounced 250 ms, quota failures disable persistence for the session with one

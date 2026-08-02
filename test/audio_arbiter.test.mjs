@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const arbiterMod = require('../ui/mods/com.lem0.pa-qol/shared/audio_arbiter.js');
+const arbiterMod = require('../ui/mods/com.lem0.pat-qol/shared/audio_arbiter.js');
 
 function makeArbiter(config, opts = {}) {
     let t = 0;
