@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 — 2026-08-02
+
+- **Angels and Colonels** join the enemy target window: Colonels
+  (support commanders) via their unit type, Angels (support platforms) by
+  spec match — grouped right under Commanders in the settings and in the
+  window's ordering, since some enemies field them in a commander-like role.
+  Both on by default, individually toggleable; saved settings migrate.
+- Ping rows render plain again — the short-lived "Ping — You" heuristic was
+  unreliable (the engine strips the sender from pings) and has been removed.
+- Release hygiene: releases now require a changelog section for the exact
+  version, and the version is set manually per release.
+
 ## 0.2.14 — 2026-08-02
 
 - Ping rows in the notification history are attributed to their sender when
