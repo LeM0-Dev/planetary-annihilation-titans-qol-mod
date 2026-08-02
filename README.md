@@ -22,6 +22,37 @@ Identifier `com.lem0.pa-qol`, tested against build 124667.
 Configure everything under **Settings → PA QOL** (works from the main menu
 and in-game). Window layout changes apply at the start of the next game.
 
+## Install (players)
+
+1. Download the newest ZIP — permanent link:
+   **[com.lem0.pa-qol.zip](https://github.com/LeM0-Dev/galaxy-war-qol/releases/latest/download/com.lem0.pa-qol.zip)**
+   (older versions under [Releases](https://github.com/LeM0-Dev/galaxy-war-qol/releases)).
+
+2. Extract it into a folder named `com.lem0.pa-qol` inside PA's `client_mods`
+   directory, so that `modinfo.json` ends up at
+   `client_mods/com.lem0.pa-qol/modinfo.json`:
+
+   | Platform | Path |
+   |---|---|
+   | Windows | `%LOCALAPPDATA%\Uber Entertainment\Planetary Annihilation\client_mods\com.lem0.pa-qol\` |
+   | Linux | `~/.local/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/` |
+   | macOS | `~/Library/Application Support/Uber Entertainment/Planetary Annihilation/client_mods/com.lem0.pa-qol/` |
+
+   Create the `client_mods` folder if it does not exist. On Windows, paste
+   the `%LOCALAPPDATA%\...` path straight into the Explorer address bar.
+   Use a real folder — PA does not follow symlinks.
+
+3. Start PA:TITANS, open **Community Mods → Installed**, enable **PA QoL**
+   (click *reload filesystem mods* if it is not listed), then restart the
+   game. Mods mount at startup.
+
+4. Configure under **Settings → PA QOL** — notification voice priorities and
+   the two in-game windows (notification history, enemy targets).
+
+To update: replace the folder contents with the new ZIP and restart. To
+uninstall: disable in Community Mods or delete the folder. All settings live
+in PA's local storage under `com.lem0.pa-qol/*` keys and survive updates.
+
 ## Install (development)
 
 ```sh
