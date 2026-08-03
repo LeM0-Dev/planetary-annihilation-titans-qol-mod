@@ -95,26 +95,45 @@ test('invalid priority values are clamped to a sane default range', () => {
     assert.equal(arbiter.decide('big').allow, true);
 });
 
-test('circuit breaker trips after sustained denials and then passes everything', () => {
+test('explicit disables NEVER trip the breaker (user intent, not malfunction)', () => {
     const cfg = { spam: { enabled: false, priority: 1 } };
+    const { arbiter, clock } = makeArbiter(cfg);
+    for (let i = 0; i < 200; i++) {
+        clock.advance(100);
+        assert.equal(arbiter.decide('spam').allow, false);
+    }
+    assert.equal(arbiter.bypass, false);
+});
+
+test('circuit breaker trips on sustained OUTRANKED denials and then passes everything', () => {
+    const cfg = {
+        alarm: { enabled: true, priority: 6 },
+        chatter: { enabled: true, priority: 1 }
+    };
     const { arbiter, clock, logs } = makeArbiter(cfg);
+    assert.equal(arbiter.decide('alarm').allow, true); // establishes last={6}
     let tripped = false;
     for (let i = 0; i < 60; i++) {
-        clock.advance(100);
-        const d = arbiter.decide('spam');
+        clock.advance(10); // stay inside the stomp window
+        const d = arbiter.decide('chatter');
         if (d.allow) { tripped = true; break; }
     }
-    assert.ok(tripped, 'breaker should trip within 60 denials at 100ms spacing');
+    assert.ok(tripped, 'breaker should trip within 60 outranked denials');
     assert.ok(arbiter.bypass);
     assert.ok(logs.some(([level]) => level === 'error'));
     // everything passes now, even disabled events
-    assert.equal(arbiter.decide('spam').allow, true);
+    assert.equal(arbiter.decide('chatter').allow, true);
 });
 
 test('reset() restores normal operation', () => {
-    const cfg = { spam: { enabled: false, priority: 1 } };
+    const cfg = {
+        alarm: { enabled: true, priority: 6 },
+        chatter: { enabled: true, priority: 1 },
+        spam: { enabled: false, priority: 1 }
+    };
     const { arbiter, clock } = makeArbiter(cfg);
-    for (let i = 0; i < 60; i++) { clock.advance(100); arbiter.decide('spam'); }
+    arbiter.decide('alarm');
+    for (let i = 0; i < 60; i++) { clock.advance(10); arbiter.decide('chatter'); }
     assert.ok(arbiter.bypass);
     arbiter.reset();
     assert.equal(arbiter.decide('spam').allow, false);

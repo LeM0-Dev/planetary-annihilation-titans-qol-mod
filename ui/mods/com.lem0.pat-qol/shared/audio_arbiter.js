@@ -40,7 +40,11 @@ var paqolAudioArbiter = (function () {
                 var cfg = config[eventName];
                 if (!cfg || typeof cfg !== 'object') return { allow: true, why: 'unconfigured' };
 
-                if (cfg.enabled === false) return deny('disabled');
+                // An explicit user-disable is DETERMINISTIC intent, not a
+                // malfunction — it must never count toward the breaker
+                // (a busy battle with several disabled chatty events used
+                // to trip it and un-mute everything for the session).
+                if (cfg.enabled === false) return { allow: false, why: 'disabled' };
 
                 var prio = cfg.priority;
                 if (typeof prio !== 'number' || isNaN(prio)) prio = 3;
@@ -63,6 +67,9 @@ var paqolAudioArbiter = (function () {
             }
         };
 
+        // The breaker only guards the HEURISTIC path (priority stomping) —
+        // the failure mode it exists for is the arbiter wrongly silencing
+        // lines the user wants, not the user muting chatty ones.
         function deny(why) {
             var t = now();
             denials.push(t);

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 — unreleased
+
+- Fixed disabled voice notifications leaking back mid-game: the audio
+  arbiter's fail-open circuit breaker counted explicit user-disables as
+  "runaway denials", so a busy battle with several muted chatty events
+  (e.g. continuous build on/off) tripped it and un-muted everything for
+  the session. Explicit disables no longer count toward the breaker — it
+  now guards only the heuristic priority-stomping path.
+
 ## 0.5.0 — 2026-08-02
 
 ### Armory info
