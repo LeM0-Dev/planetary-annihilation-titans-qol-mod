@@ -140,7 +140,7 @@
         });
 
         paqol.store.define('prefs', {
-            version: 7,
+            version: 8,
             defaults: {
                 windowScale: 100,
                 historyEnabled: true,
@@ -150,7 +150,9 @@
                 unitsEnabled: true,
                 arbiterWindowMs: 3000,
                 audioDecayMs: 3000,
-                nukesEnabled: true
+                nukesEnabled: true,
+                gwCoopTech: true,
+                gwEditEnabled: false
             },
             migrate: function (fromVersion, data) {
                 // v1 had a single hvtWidenWatchlist toggle covering the three
@@ -198,6 +200,13 @@
                     data.nukesEnabled = true;
                     fromVersion = 7;
                 }
+                // v8 adds the GW co-op tech pinning and the deck editor.
+                if (fromVersion === 7) {
+                    data = data || {};
+                    data.gwCoopTech = true;
+                    data.gwEditEnabled = false;
+                    fromVersion = 8;
+                }
                 return { version: fromVersion, data: data };
             },
             validate: function (d) {
@@ -212,6 +221,8 @@
                     hvtTargets: paqolSchema.object(targetShape),
                     unitsEnabled: paqolSchema.bool,
                     nukesEnabled: paqolSchema.bool,
+                    gwCoopTech: paqolSchema.bool,
+                    gwEditEnabled: paqolSchema.bool,
                     arbiterWindowMs: paqolSchema.intRange(500, 15000),
                     audioDecayMs: paqolSchema.intRange(500, 60000)
                 }));

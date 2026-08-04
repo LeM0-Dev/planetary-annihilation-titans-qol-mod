@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.1 — unreleased
+## 0.6.0 — 2026-08-05
 
 - Fixed disabled voice notifications leaking back mid-game: the audio
   arbiter's fail-open circuit breaker counted explicit user-disables as
@@ -8,6 +8,36 @@
   (e.g. continuous build on/off) tripped it and un-muted everything for
   the session. Explicit disables no longer count toward the breaker — it
   now guards only the heuristic priority-stomping path.
+- Fixed the in-game **Game Info** popup always saying no intel was
+  available: the GW map read the current system from the wrong observable
+  (`model.currentStar` instead of the game object's), so the intel was
+  never persisted for the battle to read.
+- **Co-op**: every player now has their own guaranteed tech per system.
+  Each partner's pin starts as the system's originally listed tech and is
+  guaranteed in their post-win card offer (host-side); when a player
+  acquires that tech elsewhere, only THEIR pin re-rolls (to the system's
+  current tech, else a random unowned card) — the partner who still wants
+  the original keeps it. The map's Available Tech panel lists each
+  partner's pinned tech by name. Persisted per campaign; treasure-planet
+  loadout grants untouched. Toggleable in settings, on by default.
+- **Deck editor** (settings toggle, OFF by default): a button on the war
+  map opens an editor for any player's cards — yours or a co-op partner's
+  saved record — to fix misclicked picks. Adding uses a searchable card
+  grid with icons, source sections (base game / GW AI Overhaul / other
+  mods) and filters; Apply writes into the campaign save (partner edits
+  take effect from their next battle). A **Ban Cards** mode marks cards
+  that should never be dealt again — banned cards' deal weight is zeroed
+  for every future star card, offer and reroll (held copies keep working;
+  unbanning restores them).
+- **Tech card browser**: the TECHS label above the war-map inventory is
+  now clickable — browse every card with search, source sections (base
+  game / GW AI Overhaul / other mods) and a loadout-card toggle; clicking
+  a card there manages the ban list. Always available, no setting needed.
+- The in-game **Game Info** popup is fixed-size and closable (✕), and its
+  menu entry appears only in Galactic War games.
+- **Unit cannons** join Own Structures with the same status treatment as
+  the launchers: Building n%, stored-pod count **n/16** with a green tint
+  while loaded, and "(loading)" while units are being built into the pods.
 
 ## 0.5.0 — 2026-08-02
 

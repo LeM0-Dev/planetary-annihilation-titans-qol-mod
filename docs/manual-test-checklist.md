@@ -140,7 +140,7 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 
 44. Settings: type "5" → error note shows, preview renders at 50, nothing
     saved; complete to "90" → error clears, preview at 90, saved.
-45. Mid-game: change the size → all three windows re-zoom within ~2 s.
+45. Mid-game: change the size → all the mod's windows re-zoom within ~2 s.
 46. At 150%: drag and resize each window — the titlebar must track the
     cursor exactly (Chrome 40 zoom/event-coordinate interaction is
     unverified; if it drifts, coordinates need multiplying by the zoom
@@ -178,3 +178,17 @@ panel context (Coherent debugger, `--coherent_port=9999`).
 50. Own Structures: nuke launcher flips Building → Preparing → green READY
     the moment the missile completes; anti-nuke shows n/3 and only shows
     "(building)" below full stock.
+
+## L. GW co-op & deck tools (0.6.0)
+
+51. Co-op: partner's post-win 3-card offer contains their pinned tech for
+    that system; the Available Tech panel lists every player's pin by name;
+    a partner running the mod sees the same listing (host broadcast).
+52. A player acquiring their pinned tech elsewhere re-rolls only THEIR pin
+    (others keep the original); pins persist across sessions.
+53. TECHS label above the inventory highlights on hover and opens the card
+    browser; banning a card there stops it appearing in any future offer,
+    star card or reroll; unbanning restores it.
+54. Deck editor (setting ON): edit own cards → effects apply immediately;
+    edit a partner's record → applies from their next battle; host appears
+    once ("You"), not twice.

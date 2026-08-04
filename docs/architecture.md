@@ -15,9 +15,11 @@ ui/mods/com.lem0.pat-qol/
 ├── shared/     PURE logic — no DOM, no PA globals. Every file has a
 │               module.exports tail guard and is tested by node --test.
 ├── features/   notify_priority (audio arbiter + defaults/stores),
-│               qol_windows (panel host), settings_tab
+│               qol_windows (panel host incl. GW Game Info popup),
+│               settings_tab, armory_info, armory_cart, armory_favs,
+│               gw_favs, lobby_favs, gw_travel (map speed + intel)
 ├── panels/     window.html/.js/.css — the floating-window PAGE, composited
-│               by the engine; one page serves both windows (role from
+│               by the engine; ONE page serves every window (role from
 │               api.Panel.pageName). Loads its scripts itself via <script>
 │               tags incl. bundle://boot/boot.js (the engine does NOT
 │               auto-inject the UI framework).

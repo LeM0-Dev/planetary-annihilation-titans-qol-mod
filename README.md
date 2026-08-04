@@ -37,9 +37,9 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   combat, **idle fabricators** grouped per planet, and **stuck units** — a
   ground unit holding a move/patrol order that has not moved for ~16 s shows
   as "<Unit> stuck ×N". *Own Structures*: idle factories that clear
-  themselves once given work, plus **nuke & anti-nuke launcher status**
-  (Building n% / Preparing / green READY, interceptor stock n/3 from the
-  engine's ammo alerts). *Allies*: allied commanders and combat. Clicking a
+  themselves once given work, plus **nuke, anti-nuke and unit cannon
+  status** (Building n% / Preparing / green READY, munition stock n/3 or
+  n/16 from the engine's ammo alerts). *Allies*: allied commanders and combat. Clicking a
   row jumps the camera AND selects what it points at (commander, idle
   factory, fabber group, stuck group, launcher) so re-tasking is one order
   away; launcher rows select on single click and jump on double click.
@@ -62,13 +62,20 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   same formula GW-AI-Overhaul's intel screen uses — enemy armies and
   commander counts, allies); and during a GW battle the ESC menu gains a
   **Game Info** popup with that intel plus active modifiers (sudden death,
-  bounty, eradication, AI buffs).
+  bounty, eradication, AI buffs). In co-op (with GW-AI-Overhaul), every
+  player gets their own guaranteed tech per system — pinned to the
+  originally listed tech, re-rolled per player only once they own it, and
+  shown per partner under Available Tech — plan routes together. Clicking **TECHS** above your
+  inventory opens a card browser (search, base-game/GWO/other-mod sections)
+  where any card can be **banned** from all future deals. An optional
+  **deck editor** (settings, off by default) lets the host edit any
+  player's cards on the war map to fix misclicked picks.
 
 Rows in all windows carry the unit's build icon plus its orbit-style
 strategic icon tinted in the owner's army colour (dark colours brightened
 for readability), the unit's real in-game name, and a right-aligned game
 timestamp. Right-click any row to dismiss it. A **Text & icon size** setting
-(free-typed 50–300% with a live preview) scales all three windows and
+(free-typed 50–300% with a live preview) scales all the mod's windows and
 applies to running windows within seconds.
 
 Configure everything under **Settings → PA:T QOL** (works from the main menu
@@ -77,11 +84,31 @@ game; the size setting applies immediately.
 
 ## Screenshots
 
-The three in-game windows — notification history (game-time stamps, ×N
-coalescing, unit icons in owner colours), the enemy target list, and
-Own & Allied (commander with [IDLE] tag, idle factories):
+The in-game windows — notification history (game-time stamps, ×N
+coalescing, unit icons in owner colours), the enemy target list, and the
+own/allied trio (commander with [IDLE] tag, idle factories, launcher
+status):
 
 ![Notification history, enemy targets and own & allied windows in-game](docs/img/notifications.png)
+
+The Galactic War map with intel labels under every living enemy system —
+planets, threat (GW-AI-Overhaul's formula), enemy armies and commander
+counts:
+
+![Galactic War map with per-system intel labels](docs/img/map.png)
+
+The tech card browser — click **TECHS** above your inventory on the war map
+to browse every card with search, source filters and sections; clicking a
+card bans/unbans it from all future deals:
+
+![Tech card browser with search, source sections and bans](docs/img/techs.png)
+
+The deck editor (optional, settings) and the in-game **Game Info** popup
+from the ESC menu:
+
+![Deck editor — edit any player's cards](docs/img/deckeditor.png)
+
+![Game Info popup — system intel during a GW battle](docs/img/gameinfo.png)
 
 The **PA:T QOL** settings tab — search, window toggles with per-category
 targets, and the voice priority controls:
@@ -140,8 +167,8 @@ targets, and the voice priority controls:
    game. Mods mount at startup.
 
 4. Configure under **Settings → PA:T QOL** — notification voice priorities and
-   the three in-game windows (notification history, enemy targets,
-   own & allied units).
+   the in-game windows (notification history, enemy targets, own units,
+   own structures, allies).
 
 To update: replace the folder contents with the new ZIP and restart. To
 uninstall: disable in Community Mods or delete the folder. All settings live
@@ -151,6 +178,9 @@ in PA's local storage under `com.lem0.pat-qol/*` keys and survive updates.
 
 ```sh
 tools/install-copy.sh        # rsyncs the runtime files into PA's client_mods/
+                             # (installs as com.lem0.pat-qol.dev — CMM
+                             # force-disables filesystem mods that share an
+                             # identifier with a community-index mod)
                              # re-run after every edit, then restart PA
 ```
 

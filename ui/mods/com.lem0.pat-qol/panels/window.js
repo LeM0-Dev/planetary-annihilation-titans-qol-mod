@@ -605,9 +605,10 @@
             // commanders show their own [IDLE] tag; skip them here
             if (UT && (paqolHvt.isType(UT.Commander, alert.unit_types) ||
                 paqolHvt.isType(UT.SupportCommander, alert.unit_types))) return;
-            // nuke/anti-nuke launchers have their own dedicated status rows
-            // (Building/Preparing/ammo count) — an extra "idle" row is noise
-            if (alert.spec_id && (NUKE_SPEC.test(alert.spec_id) || ANTI_SPEC.test(alert.spec_id))) return;
+            // nuke/anti-nuke launchers and unit cannons have their own
+            // dedicated status rows — an extra "idle" row is noise
+            if (alert.spec_id && (NUKE_SPEC.test(alert.spec_id) || ANTI_SPEC.test(alert.spec_id) ||
+                UC_SPEC.test(alert.spec_id))) return;
             if (UT && paqolHvt.isType(UT.Fabber, alert.unit_types) &&
                 !paqolHvt.isType(UT.Factory, alert.unit_types)) {
                 // mobile fabricators: aggregated per planet, not per unit
@@ -924,7 +925,9 @@
     var NUKE_POLL_MS = 2000;
     var NUKE_SPEC = /\/nuke_launcher\/nuke_launcher\.json/;           // 'anti_nuke_launcher' has no '/' before 'nuke_launcher'
     var ANTI_SPEC = /\/anti_nuke_launcher\/anti_nuke_launcher\.json/;
-    var ANTI_CAPACITY = 3;  // display fallback until the first ammo alert
+    var UC_SPEC = /\/unit_cannon\/unit_cannon\.json/;
+    var ANTI_CAPACITY = 3;  // display fallbacks until the first ammo alert
+    var UC_CAPACITY = 16;   // (the unit cannon has 16 build sockets)
     var nukeRows = [];
     var ammoByUnit = {}; // launcher unit id -> {count, max} from ammo alerts
 
@@ -948,7 +951,9 @@
             wv.getArmyUnits(own.index, p).then(function (bySpec) {
                 _.forEach(bySpec || {}, function (unitIds, spec) {
                     if (!_.isArray(unitIds)) return;
-                    var lt = NUKE_SPEC.test(spec) ? 'nuke' : (ANTI_SPEC.test(spec) ? 'anti' : null);
+                    var lt = NUKE_SPEC.test(spec) ? 'nuke'
+                        : ANTI_SPEC.test(spec) ? 'anti'
+                            : UC_SPEC.test(spec) ? 'uc' : null;
                     if (!lt) return;
                     for (var u = 0; u < unitIds.length; u++)
                         launcherIds.push({ id: unitIds[u], type: lt });
@@ -1040,16 +1045,20 @@
         if (group === 'own') {
             var ownEntry = _.find(roster, function (r) { return r.state === 'own'; });
             _.forEach(nukeRows, function (n) {
-                var name = n.type === 'anti' ? 'Anti-nuke' : 'Nuke launcher';
+                var name = n.type === 'anti' ? 'Anti-nuke'
+                    : n.type === 'uc' ? 'Unit cannon' : 'Nuke launcher';
                 var known = ammoByUnit[n.id] || null; // exact {count,max} from ammo alerts
                 var label, green = false;
                 if (n.status === 'Building') {
                     label = name + ' — Building' + (n.pct !== undefined ? ' ' + n.pct + '%' : '');
-                } else if (n.type === 'anti') {
-                    var max = (known && known.max) ? known.max : ANTI_CAPACITY;
+                } else if (n.type === 'anti' || n.type === 'uc') {
+                    // both stock a COUNT of stored munitions/units
+                    var max = (known && known.max) ? known.max
+                        : (n.type === 'uc' ? UC_CAPACITY : ANTI_CAPACITY);
                     var cnt = known ? known.count : null;
                     label = name + ' — ' + (cnt === null ? '?' : cnt) + '/' + max +
-                        (n.status === 'Preparing' && (cnt === null || cnt < max) ? ' (building)' : '');
+                        (n.status === 'Preparing' && (cnt === null || cnt < max)
+                            ? (n.type === 'uc' ? ' (loading)' : ' (building)') : '');
                     green = cnt !== null && cnt > 0;
                 } else if (known && known.count >= (known.max || 1)) {
                     // the ammo alert is INSTANT; the poll's build_target can

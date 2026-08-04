@@ -109,6 +109,8 @@
                 self.hvtEnabled = ko.observable(prefs.hvtEnabled !== false);
                 self.unitsEnabled = ko.observable(prefs.unitsEnabled !== false);
                 self.nukesEnabled = ko.observable(prefs.nukesEnabled !== false);
+                self.gwCoopTech = ko.observable(prefs.gwCoopTech !== false);
+                self.gwEditEnabled = ko.observable(prefs.gwEditEnabled === true);
                 self.arbiterWindowMs = ko.observable(
                     typeof prefs.arbiterWindowMs === 'number' ? prefs.arbiterWindowMs : 3000);
                 self.audioDecayMs = ko.observable(
@@ -148,6 +150,8 @@
                         hvtTargets: hvtTargets,
                         unitsEnabled: self.unitsEnabled() === true,
                         nukesEnabled: self.nukesEnabled() === true,
+                        gwCoopTech: self.gwCoopTech() === true,
+                        gwEditEnabled: self.gwEditEnabled() === true,
                         arbiterWindowMs: Number(self.arbiterWindowMs()),
                         audioDecayMs: Number(self.audioDecayMs())
                     });
@@ -158,7 +162,7 @@
                     row.priority.subscribe(save);
                 });
                 _.forEach([self.windowScaleApplied, self.historyEnabled, self.historyCap, self.hvtEnabled,
-                    self.unitsEnabled, self.nukesEnabled, self.arbiterWindowMs, self.audioDecayMs],
+                    self.unitsEnabled, self.nukesEnabled, self.gwCoopTech, self.gwEditEnabled, self.arbiterWindowMs, self.audioDecayMs],
                     function (obs) { obs.subscribe(save); });
                 _.forEach(self.targetRows, function (row) { row.enabled.subscribe(save); });
 
@@ -173,6 +177,8 @@
                     self.hvtEnabled(true);
                     self.unitsEnabled(true);
                     self.nukesEnabled(true);
+                    self.gwCoopTech(true);
+                    self.gwEditEnabled(false);
                     _.forEach(self.targetRows, function (row) { row.enabled(true); });
                     self.arbiterWindowMs(3000);
                     self.audioDecayMs(3000);
