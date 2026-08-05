@@ -13,7 +13,7 @@
   "identifier": "com.lem0.pat-qol",
   "signature": " ",
   "titansOnly": true,
-  "version": "0.6.1",
+  "version": "0.6.2",
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.lem0.pat-qol/core/ns.js",

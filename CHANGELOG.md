@@ -1,14 +1,12 @@
 # Changelog
 
-## 0.6.2 — unreleased
+## 0.6.2 — 2026-08-06
 
 - Co-op tech pinning: a pinned card is now offered with `allowOverflow`
   (and a unique id) like the game's own upgrade cards. Without it,
   `canFitCard()` refused the pick whenever the partner's hand was full, so
   the pinned tech showed up with its button disabled while an identical
   normally-dealt card worked.
-
-## 0.6.2 — unreleased
 
 - Deck editor: shows held cards as a grid of icon tiles with titles and
   descriptions (same look as the card browser); ✕ on a tile removes it.
