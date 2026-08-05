@@ -290,15 +290,15 @@
                     createWindow({
                         name: name,
                         def: {
-                            left: Math.max(16, Math.round(vp.w / 2 - 210)),
-                            top: Math.max(16, Math.round(vp.h / 2 - 160)),
-                            width: 420, height: 320
+                            left: Math.max(16, Math.round(vp.w / 2 - 270)),
+                            top: Math.max(16, Math.round(vp.h / 2 - 200)),
+                            width: 540, height: 400
                         }
                     });
                     // fixed size: whatever geometry was stored, the popup is
                     // always 420x320 (position stays draggable/persisted)
-                    els[name].style.width = '420px';
-                    els[name].style.height = '320px';
+                    els[name].style.width = '540px';
+                    els[name].style.height = '400px';
                     pushRegion(name);
                     gwInfoVisible = true;
                 } else {

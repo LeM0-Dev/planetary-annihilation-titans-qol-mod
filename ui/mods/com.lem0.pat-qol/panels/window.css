@@ -142,3 +142,16 @@ html, body {
     color: #7f97a6;
     font-style: italic;
 }
+
+/* Game Info popup: its rows are prose (eradication targets, modifier
+   lists), so they wrap instead of truncating with an ellipsis. */
+.paqol-role-gwinfo .paqol-row {
+    align-items: flex-start;
+}
+.paqol-role-gwinfo .paqol-row-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
+    padding: 2px 0;
+}

@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.6.2 — unreleased
+
+- Deck editor: shows held cards as a grid of icon tiles with titles and
+  descriptions (same look as the card browser); ✕ on a tile removes it.
+- Deck editor: card slots are handled correctly. Capacity is DERIVED by
+  the game (`applyCards()` resets it and re-applies every card's buff —
+  start cards give a base, each Additional Data Bank card +2), so the
+  editor never computes or writes it: the header shows the real number and
+  +/− add or remove the game's own slot card.
+- Deck editor: a partner's cards now take effect. A co-op record is inert
+  JSON and the battle config reads its derived `mods`/`units` (built only
+  by `applyCards()`), so editing the card list alone changed nothing in
+  battle. Partner edits now run through a real GWInventory and store the
+  recomputed snapshot.
+- Deck editor: a card added past the slot count is no longer invisible —
+  the inventory panel renders exactly `maxCards` tiles, so the hand now
+  the panel refreshes at once. (An empty slot renders as "Empty Data
+  Bank" — removing a tech frees its slot rather than shrinking capacity.)
+- Deck editor: editing a PARTNER's cards now pushes the change to their
+  client instead of only writing the host's mirror of their record — their
+  own client re-publishes its inventory, which silently overwrote the edit.
+  The partner must be running this mod for the push to land; the editor
+  says so.
+
 ## 0.6.1 — 2026-08-05
 
 - The Game Info popup spells out eradication targets ("Eradication mode —

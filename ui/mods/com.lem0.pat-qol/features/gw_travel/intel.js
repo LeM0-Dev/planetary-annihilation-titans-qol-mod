@@ -461,7 +461,9 @@
                         vhtml += '<div class="paqol-tech-player">' +
                             _.escape(nm) + ': ' +
                             '<span style="color:#7cfc78">' + _.escape(techName(vpin)) + '</span>' +
-                            (vpin !== cardId ? ' <span style="color:#7f97a6">(re-rolled)</span>' : '') +
+                            (vpin !== cardId
+                                ? ' <span style="color:#7f97a6">(pinned earlier — the system has re-rolled since)</span>'
+                                : '') +
                             '</div>';
                     });
                     $host.html(vhtml);
@@ -476,7 +478,9 @@
                     html += '<div class="paqol-tech-player">' +
                         _.escape(r.playerName || ('Player ' + r.playerId)) + ': ' +
                         '<span style="color:#7cfc78">' + _.escape(techName(pin)) + '</span>' +
-                        (pin !== cardId ? ' <span style="color:#7f97a6">(re-rolled)</span>' : '') +
+                        (pin !== cardId
+                            ? ' <span style="color:#7f97a6">(pinned earlier — the system has re-rolled since)</span>'
+                            : '') +
                         (owns ? ' <span style="color:#7f97a6">(owned — will re-roll)</span>' : '') +
                         '</div>';
                 });
@@ -518,22 +522,35 @@
                 '#paqol-deck-btn:hover{background:rgba(0,179,255,0.35);color:#fff}' +
                 '#paqol-deck-editor{position:fixed;left:0;top:0;right:0;bottom:0;z-index:100000;' +
                 'background:rgba(0,0,0,0.55)}' +
-                '.pde-box{position:absolute;left:50%;top:50%;width:520px;max-height:70%;margin:-260px 0 0 -260px;' +
+                '.pde-box{position:absolute;left:50%;top:50%;width:80vw;height:80%;margin:0;transform:translate(-50%,-50%);-webkit-transform:translate(-50%,-50%);' +
                 'background:rgb(14,18,22);border:1px solid rgba(0,179,255,0.7);color:#cfe0ea;' +
                 'display:flex;flex-direction:column;font-size:17px}' +
                 '.pde-title{padding:8px 10px;background:rgba(40,58,72,0.95);font-size:18px;font-weight:bold}' +
                 '.pde-close{float:right;cursor:pointer;color:#9db8c8}.pde-close:hover{color:#fff}' +
                 '.pde-box select{background:rgba(10,14,18,0.9);color:#cfe0ea;border:1px solid rgba(120,160,190,0.4);padding:2px 4px}' +
                 '.pde-head{padding:8px 10px}' +
-                '.pde-cards{flex:1;overflow-y:auto;margin:0 10px;border:1px solid rgba(120,160,190,0.25);min-height:120px}' +
-                '.pde-card{display:flex;padding:5px 8px;border-bottom:1px solid rgba(120,160,190,0.12)}' +
+                '.pde-slots{margin-top:8px;font-size:15px;color:#b8d0de}' +
+                '.pde-slots .pde-btn{padding:0 10px;margin-left:6px;font-size:16px}' +
+                '.pde-slotn{font-weight:bold;color:#fff}' +
+                '.pde-slotinfo{color:#7f97a6;font-size:13px}' +
+                '.pde-slotwarn{display:none;margin-top:4px;color:#ffb86b;font-size:13px}' +
+                '.pde-cards{flex:0 1 auto;overflow-y:auto;margin:0 10px;border:1px solid rgba(120,160,190,0.25);' +
+                'min-height:120px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;padding:6px}' +
+                '.pde-card{box-sizing:border-box;width:248px;margin:6px;padding:10px;position:relative;' +
+                'background:rgba(20,28,36,0.9);border:1px solid rgba(120,160,190,0.3)}' +
+                '.pde-card:hover{border-color:#ff7b76}' +
+                '.pde-card img{display:block;width:64px;height:64px;margin:0 auto 6px auto}' +
+                '.pde-card-title{font-weight:bold;font-size:16px;text-align:center;margin-bottom:5px}' +
+                '.pde-card-desc{font-size:14px;line-height:1.35;color:#b8d0de;text-align:center}' +
                 '.pde-card-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
-                '.pde-x{color:#d9534f;cursor:pointer;padding:0 6px;font-weight:bold}.pde-x:hover{color:#ff7b76}' +
+                '.pde-x{position:absolute;top:2px;right:6px;color:#d9534f;cursor:pointer;font-size:18px;' +
+                'font-weight:bold;line-height:18px}.pde-x:hover{color:#ff7b76}' +
                 '.pde-addrow{display:flex;padding:8px 10px;gap:0}' +
                 '.pde-addrow select{flex:1;margin-right:8px}' +
                 '.pde-btn{padding:3px 14px;background:rgba(40,58,72,0.9);border:1px solid rgba(120,160,190,0.4);' +
                 'color:#cfe0ea;cursor:pointer}.pde-btn:hover{background:rgba(80,110,135,0.7);color:#fff}' +
                 '.pde-actions{padding:8px 10px;text-align:right}' +
+                '.pde-status{display:none;padding:0 10px 4px 10px;font-size:14px}' +
                 '.pde-actions .pde-btn{margin-left:8px}' +
                 '.pde-apply{border-color:rgba(0,179,255,0.8)}' +
                 '.pde-note{padding:0 10px 8px 10px;color:#7f97a6;font-size:13px;font-style:italic}' +
@@ -632,7 +649,42 @@
             function cardName(id) { return cardMeta(id).name; }
             function entryId(c) { return (c && c.id) || (typeof c === 'string' ? c : null); }
 
+            // Capacity is DERIVED by the game: applyCards() resets maxCards
+            // to 0 and re-applies every card's buff — start cards contribute
+            // a base and gwc_add_card_slot adds +2 each. NEVER model that
+            // here (an early attempt assumed 2 x slot cards and appended
+            // seven bogus slot cards to "fix" a deficit that did not exist);
+            // read the real number, and change it only by adding/removing
+            // the slot card the game itself uses.
+            var SLOT_CARD = 'gwc_add_card_slot';
+            function slotCard() {
+                return { id: SLOT_CARD, allowOverflow: true, unique: Math.random() };
+            }
+            function slotCount(list) {
+                return _.filter(list, function (c) { return entryId(c) === SLOT_CARD; }).length;
+            }
+            // Capacity after Apply = the game's current number plus +2 for
+            // every Data Bank staged in this edit that is not in the saved
+            // hand yet. Only the +2 of the game's own slot card is assumed.
+            function stagedCapacity(savedList) {
+                var added = slotCount(working) - slotCount(savedList || []);
+                return liveCapacity() + Math.max(0, added) * 2;
+            }
+
+            function liveCapacity() {
+                try {
+                    if (selKey === 'you') {
+                        var inv = model.game().inventory();
+                        return (typeof inv.maxCards === 'function') ? inv.maxCards() : 0;
+                    }
+                    var p = players()[_.findIndex(players(), { key: selKey })];
+                    var ri = (p && p.rec && p.rec.inventory) || {};
+                    return (typeof ri.maxCards === 'number') ? ri.maxCards : 0;
+                } catch (e) { return 0; }
+            }
+
             var working = null;   // array of card entries being edited
+            var savedHand = [];   // the hand as stored, to spot staged changes
             var selKey = 'you';
 
             function players() {
@@ -656,10 +708,12 @@
                 try {
                     if (selKey === 'you') {
                         working = (model.game().inventory().cards() || []).slice();
+                        savedHand = working.slice();
                     } else {
                         var rec = players()[_.findIndex(players(), { key: selKey })];
                         rec = rec && rec.rec;
-                        working = ((rec && rec.inventory && rec.inventory.cards) || []).slice();
+                        working = (((rec && rec.inventory) || {}).cards || []).slice();
+                        savedHand = working.slice();
                     }
                 } catch (e) { }
             }
@@ -685,23 +739,48 @@
                 return _.keys(ids).sort();
             }
 
+            function renderSlots($box) {
+                var cap = liveCapacity();  // recomputed by the game on Apply
+                $box.find('.pde-slotn').text(cap);
+                $box.find('.pde-slotinfo').text(' — ' + working.length + ' cards, ' +
+                    slotCount(working) + ' Additional Data Bank card(s) (+2 slots each). ' +
+                    'Capacity updates when you Apply.');
+                // over capacity: the panel draws only maxCards tiles, so the
+                // extra cards work in battle but are invisible everywhere
+                var over = working.length - stagedCapacity(savedHand);
+                var $w = $box.find('.pde-slotwarn');
+                if (over > 0) {
+                    $w.text('⚠ ' + over + ' card(s) beyond capacity — they still apply in ' +
+                        'battle but cannot be shown in the inventory panel. Press + to add a ' +
+                        'Data Bank (+2 slots) so they display.').show();
+                } else {
+                    $w.hide();
+                }
+            }
+
             function renderCards($box) {
+                renderSlots($box);
                 var $list = $box.find('.pde-cards').empty();
                 _.forEach(working, function (c, i) {
                     var id = entryId(c) || '?';
+                    var m = cardMeta(id);
                     // sub-commander instances: show the lieutenant, not the id
-                    var label = (id === 'gwc_minion' && c && c.minion && c.minion.name)
-                        ? 'Sub Commander: ' + c.minion.name
-                        : cardName(id);
-                    $('<div class="pde-card"><span class="pde-card-name"></span><span class="pde-x">✕</span></div>')
-                        .appendTo($list)
-                        .find('.pde-card-name').text(label).end()
-                        .find('.pde-x').on('click', function () {
+                    var isMinion = (id === 'gwc_minion' && c && c.minion && c.minion.name);
+                    var $t = $('<div class="pde-card"></div>').appendTo($list);
+                    if (m.icon) $('<img>').attr('src', m.icon).appendTo($t);
+                    $('<div class="pde-card-title"></div>')
+                        .text(isMinion ? 'Sub Commander' : m.name).appendTo($t);
+                    $('<div class="pde-card-desc"></div>')
+                        [isMinion ? 'text' : 'html'](isMinion ? c.minion.name : m.desc)
+                        .appendTo($t);
+                    $('<span class="pde-x" title="Remove">✕</span>').appendTo($t)
+                        .on('click', function () {
                             working.splice(i, 1);
                             renderCards($box);
                         });
                 });
-                if (!working.length) $list.append('<div class="pde-card"><span class="pde-card-name" style="color:#7f97a6">No cards.</span></div>');
+                if (!working.length)
+                    $list.append('<div class="pde-card-desc" style="color:#7f97a6">No cards.</div>');
             }
 
             function openGrid($box, banMode) {
@@ -740,6 +819,13 @@
                         $('<div class="pde-tile-desc"></div>').html(m.desc).appendTo($t); // descriptions carry HTML markup
                         if (isBanned(id)) $('<div class="pde-tile-banflag">BANNED</div>').prependTo($t);
                         $t.on('click', function () {
+                            if (!banMode && working) {
+                                // the game never allows more cards than slots
+                                // (gw_inventory canAddCard) — stage a Data
+                                // Bank so the new card has somewhere to live
+                                while (working.length + 1 > stagedCapacity(savedHand))
+                                    working.push(slotCard());
+                            }
                             if (banMode) {
                                 var bans = loadBans();
                                 if (bans[id]) delete bans[id];
@@ -809,22 +895,129 @@
             function apply($box) {
                 try {
                     if (selKey === 'you') {
-                        // observable set -> GWInventory re-applies card effects
+                        // observable set -> GWInventory re-applies card
+                        // effects AND recomputes capacity from the cards
                         model.game().inventory().cards(working.slice());
+                        if (typeof model.cardsChanged === 'function') model.cardsChanged();
                     } else {
                         var p = players()[_.findIndex(players(), { key: selKey })];
                         if (!p || !p.rec) throw new Error('record vanished');
-                        p.rec.inventory.cards = working.slice();
-                        model.game().upsertCoopPlayerInventoryData(p.rec);
+                        // partner writes are ASYNC (module load + applyCards):
+                        // keep the dialog open and report the real outcome
+                        // instead of closing on a promise nobody watched
+                        status($box, 'Applying…');
+                        applyToRecord(p.rec, working.slice(), function (ok, info) {
+                            if (ok) {
+                                status($box, 'Saved: ' + info.cards + ' cards, ' +
+                                    info.maxCards + ' slots, ' + info.units + ' units, ' +
+                                    info.mods + ' mods.');
+                                savedHand = working.slice();
+                                renderCards($box);
+                            } else {
+                                status($box, 'FAILED: ' + info, true);
+                            }
+                        });
+                        return;
                     }
                     if (window.GW && GW.manifest && typeof GW.manifest.saveGame === 'function')
                         GW.manifest.saveGame(model.game());
                     paqol.log.info('deck editor: applied ' + working.length + ' cards for ' + selKey);
-                    close();
+                    savedHand = working.slice();
+                    status($box, 'Saved: ' + working.length + ' cards, ' +
+                        model.game().inventory().maxCards() + ' slots.');
+                    renderCards($box);
                 } catch (e) {
                     paqol.log.error('deck editor apply failed: ' + e.message);
                 }
             }
+
+            // A co-op record is inert JSON: the battle config reads its
+            // DERIVED mods/units (referee_coop.js -> referee_config_setup.js),
+            // not its card list, and only GWInventory.applyCards() rebuilds
+            // those. So run the cards through a real GWInventory and store
+            // the recomputed snapshot — otherwise the partner's card list
+            // changes while their actual tech does not.
+            function applyToRecord(rec, cards, done) {
+                done = done || function () { };
+                var settled = false;
+                function finish(ok, info) {
+                    if (settled) return;
+                    settled = true;
+                    done(ok, info);
+                }
+                // never leave the caller hanging on a module/apply that
+                // silently never calls back
+                setTimeout(function () {
+                    finish(false, 'timed out waiting for the inventory rebuild');
+                }, 8000);
+                requireGW(['shared/gw_inventory'], function (GWInventory) {
+                    try {
+                        var inv = new GWInventory();
+                        inv.load(_.cloneDeep(rec.inventory || {}));
+                        inv.cards(cards);          // triggers applyCards
+                        inv.applyCards(function () {
+                            try {
+                                rec.inventory = ko.toJS(inv);
+                                rec.updatedAt = _.now(); // viewers key their display on this
+                                model.game().upsertCoopPlayerInventoryData(rec);
+                                // push to a partner running this mod so their
+                                // own client's copy matches (their client owns
+                                // the display; the host owns battle config)
+                                if (typeof model.sendCampaignAction === 'function') {
+                                    model.sendCampaignAction('paqol_set_inventory', {
+                                        playerId: rec.playerId,
+                                        playerName: rec.playerName,
+                                        record: rec
+                                    });
+                                }
+                                if (window.GW && GW.manifest &&
+                                    typeof GW.manifest.saveGame === 'function')
+                                    GW.manifest.saveGame(model.game());
+                                paqol.log.info('deck editor: rebuilt ' +
+                                    (rec.playerName || rec.playerId) + ' inventory (' +
+                                    cards.length + ' cards, ' +
+                                    ((rec.inventory.mods || []).length) + ' mods)');
+                                finish(true, {
+                                    cards: (rec.inventory.cards || []).length,
+                                    maxCards: rec.inventory.maxCards,
+                                    units: (rec.inventory.units || []).length,
+                                    mods: (rec.inventory.mods || []).length
+                                });
+                            } catch (e) {
+                                paqol.log.error('deck editor: record rebuild failed: ' + e.message);
+                                finish(false, e.message);
+                            }
+                        });
+                    } catch (e) {
+                        paqol.log.error('deck editor: GWInventory unavailable: ' + e.message);
+                        finish(false, 'GWInventory unavailable: ' + e.message);
+                    }
+                });
+            }
+
+            function status($box, text, bad) {
+                $box.find('.pde-status').text(text)
+                    .css('color', bad ? '#ff7b76' : '#7cfc78').show();
+            }
+
+            // Viewer side: apply an inventory pushed by the host (needs the
+            // mod on this client; ignored by unmodded viewers).
+            var wiredInv = false;
+            setInterval(function () {
+                if (wiredInv || !window.model) return;
+                if (typeof model.registerCampaignViewerOperatorHandler !== 'function') return;
+                wiredInv = true;
+                model.registerCampaignViewerOperatorHandler('paqol_set_inventory', function (payload) {
+                    try {
+                        var own = (typeof model.uberId === 'function') ? model.uberId() : null;
+                        if (!payload || !payload.record) return;
+                        if (own !== null && String(payload.playerId) !== String(own)) return;
+                        if (typeof model.applyCoopPlayerInventoryRecord === 'function')
+                            model.applyCoopPlayerInventoryRecord(_.cloneDeep(payload.record),
+                                'paqol_deck_editor');
+                    } catch (e) { paqol.log.warn('paqol_set_inventory failed: ' + e.message); }
+                });
+            }, 1000);
 
             var $overlay = null;
             function close() { if ($overlay) { $overlay.remove(); $overlay = null; } }
@@ -834,12 +1027,16 @@
                 $overlay = $(
                     '<div id="paqol-deck-editor"><div class="pde-box">' +
                     '<div class="pde-title">Deck Editor<span class="pde-close">✕</span></div>' +
-                    '<div class="pde-head">Player: <select class="pde-player"></select></div>' +
+                    '<div class="pde-head">Player: <select class="pde-player"></select>' +
+                    '<div class="pde-slots">Card slots: <span class="pde-slotn"></span>' +
+                    '<button class="pde-btn pde-slotdn">−</button>' +
+                    '<button class="pde-btn pde-slotup">+</button>' +
+                    '<span class="pde-slotinfo"></span><div class="pde-slotwarn"></div></div></div>' +
                     '<div class="pde-cards"></div>' +
                     '<div class="pde-addrow"><button class="pde-btn pde-addbtn" style="width:100%">Add Card…</button></div>' +
-                    '<div class="pde-actions"><button class="pde-btn pde-apply">Apply &amp; Save</button>' +
+                    '<div class="pde-status"></div><div class="pde-actions"><button class="pde-btn pde-apply">Apply &amp; Save</button>' +
                     '<button class="pde-btn pde-cancel">Cancel</button></div>' +
-                    '<div class="pde-note">Apply writes straight into the campaign save. Partner edits take effect from their next battle.</div>' +
+                    '<div class="pde-note">Apply writes straight into the campaign save. A partner\'s tech takes effect in the next battle (the host builds the battle config); their own inventory PANEL only updates if they run this mod too.</div>' +
                     '</div></div>').appendTo(document.body);
                 var $box = $overlay.find('.pde-box');
                 var $psel = $overlay.find('.pde-player');
@@ -856,6 +1053,18 @@
                     renderCards($box);
                 });
                 $overlay.find('.pde-addbtn').on('click', function () { openGrid($box, false); });
+                // +/- add or remove Additional Data Bank cards (the only
+                // thing that actually changes capacity)
+                $overlay.find('.pde-slotup').on('click', function () {
+                    working.push(slotCard());
+                    renderCards($box);
+                });
+                $overlay.find('.pde-slotdn').on('click', function () {
+                    for (var i = working.length - 1; i >= 0; i--) {
+                        if (entryId(working[i]) === SLOT_CARD) { working.splice(i, 1); break; }
+                    }
+                    renderCards($box);
+                });
                 $overlay.find('.pde-apply').on('click', function () { apply($box); });
                 $overlay.find('.pde-cancel, .pde-close').on('click', close);
             }

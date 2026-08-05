@@ -29,6 +29,10 @@
         return;
     }
 
+    // role hook for CSS (the Game Info popup wraps its text instead of
+    // ellipsising it — modifiers lines are long by nature)
+    if (document.body) document.body.className += ' paqol-role-' + role.replace('paqol_', '');
+
     var prefs = paqol.store.get('prefs') || {};
     // user-set text/icon scale: CSS zoom scales the whole page content
     // (text, icons, paddings) inside the fixed panel box
