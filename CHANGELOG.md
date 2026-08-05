@@ -26,7 +26,7 @@
   grid with icons, source sections (base game / GW AI Overhaul / other
   mods) and filters; Apply writes into the campaign save (partner edits
   take effect from their next battle).
-- **Tech card browser & ban list**: the TECHS label above the war-map
+- **Tech card browser & ban list**: the TECHS label below the war-map
   inventory is now clickable — browse every card with search, source
   sections (base game / GW AI Overhaul / other mods) and a loadout-card
   toggle. Clicking a card there **bans/unbans** it: banned cards' deal

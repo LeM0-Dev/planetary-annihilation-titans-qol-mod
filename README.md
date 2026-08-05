@@ -97,7 +97,7 @@ counts:
 
 ![Galactic War map with per-system intel labels](docs/img/map.png)
 
-The tech card browser — click **TECHS** above your inventory on the war map
+The tech card browser — click **TECHS** below your inventory on the war map
 to browse every card with search, source filters and sections; clicking a
 card bans/unbans it from all future deals:
 
