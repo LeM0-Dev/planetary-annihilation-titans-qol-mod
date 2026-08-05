@@ -366,7 +366,13 @@
                     if (!want) return;
                     if (_.some(ptc.cards, function (c) { return c && c.id === want; })) return;
                     if (viewerOwns(p.client_id, p.client_name, want)) return;
-                    ptc.cards[0] = { id: want };
+                    // Params matter: gw_inventory.canFitCard() only lets a
+                    // card be picked when the hand has room OR the card
+                    // carries allowOverflow (which is what upgradeDeal-style
+                    // cards return from deal()). An id-only pin lost that
+                    // flag and the pick button came up disabled on a full
+                    // hand — a pin is a guarantee, so it always overflows.
+                    ptc.cards[0] = { id: want, allowOverflow: true, unique: Math.random() };
                     paqol.log.info('co-op offer: pinned ' + want + ' for ' + p.client_name);
                 });
             }
