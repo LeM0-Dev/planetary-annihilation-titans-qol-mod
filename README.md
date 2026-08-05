@@ -61,8 +61,10 @@ Identifier `com.lem0.pat-qol`, tested against build 124667.
   living enemy shows an intel label under its star (planets, threat — the
   same formula GW-AI-Overhaul's intel screen uses — enemy armies and
   commander counts, allies); and during a GW battle the ESC menu gains a
-  **Game Info** popup with that intel plus active modifiers (sudden death,
-  bounty, eradication, AI buffs). In co-op (with GW-AI-Overhaul), every
+  **Game Info** popup with that intel plus active modifiers — its main job
+  is reminding you mid-battle what rules apply, especially eradication
+  targets ("kill all Colonels, Factories"), sudden death, bounty and AI
+  buffs. In co-op (with GW-AI-Overhaul), every
   player gets their own guaranteed tech per system — pinned to the
   originally listed tech, re-rolled per player only once they own it, and
   shown per partner under Available Tech — plan routes together. Clicking **TECHS** above your

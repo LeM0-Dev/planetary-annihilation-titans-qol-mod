@@ -84,7 +84,16 @@
                 if (ai.suddenDeath) mods.push('Sudden death');
                 if (ai.bountyMode) mods.push('Bounty mode' +
                     (ai.bountyModeValue ? ' (' + ai.bountyModeValue + ')' : ''));
-                if (ai.eradicationMode) mods.push('Eradication mode');
+                if (ai.eradicationMode) {
+                    // the whole point of the in-battle popup: remembering
+                    // WHAT must be eradicated
+                    var targets = [];
+                    if (ai.eradicationModeSubCommanders) targets.push('Colonels');
+                    if (ai.eradicationModeFactories) targets.push('Factories');
+                    if (ai.eradicationModeFabbers) targets.push('Fabbers');
+                    mods.push('Eradication mode' +
+                        (targets.length ? ' — kill all ' + targets.join(', ') : ''));
+                }
                 if (ai.mirrorMode) mods.push('Guardians');
                 _.forEach(ai.typeOfBuffs || [], function (b) {
                     mods.push('AI buff: ' + (BUFF_NAME[b] || b));

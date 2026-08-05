@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 — 2026-08-05
+
+- The Game Info popup spells out eradication targets ("Eradication mode —
+  kill all Colonels, Factories") instead of just naming the mode — its
+  main job is reminding you mid-battle what the modifiers demand.
+
 ## 0.6.0 — 2026-08-05
 
 - Fixed disabled voice notifications leaking back mid-game: the audio
