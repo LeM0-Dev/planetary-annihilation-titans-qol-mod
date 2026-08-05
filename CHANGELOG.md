@@ -25,14 +25,14 @@
   saved record — to fix misclicked picks. Adding uses a searchable card
   grid with icons, source sections (base game / GW AI Overhaul / other
   mods) and filters; Apply writes into the campaign save (partner edits
-  take effect from their next battle). A **Ban Cards** mode marks cards
-  that should never be dealt again — banned cards' deal weight is zeroed
-  for every future star card, offer and reroll (held copies keep working;
-  unbanning restores them).
-- **Tech card browser**: the TECHS label above the war-map inventory is
-  now clickable — browse every card with search, source sections (base
-  game / GW AI Overhaul / other mods) and a loadout-card toggle; clicking
-  a card there manages the ban list. Always available, no setting needed.
+  take effect from their next battle).
+- **Tech card browser & ban list**: the TECHS label above the war-map
+  inventory is now clickable — browse every card with search, source
+  sections (base game / GW AI Overhaul / other mods) and a loadout-card
+  toggle. Clicking a card there **bans/unbans** it: banned cards' deal
+  weight is zeroed for every future star card, offer and reroll (held
+  copies keep working; unbanning restores them). Always available, no
+  setting needed.
 - The in-game **Game Info** popup is fixed-size and closable (✕), and its
   menu entry appears only in Galactic War games.
 - **Unit cannons** join Own Structures with the same status treatment as
